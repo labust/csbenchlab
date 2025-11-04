@@ -1,0 +1,305 @@
+from PyQt6.QtWidgets import *
+from PyQt6 import uic, QtCore
+import sys, os
+import subprocess
+from pathlib import Path
+from qt.worker_thread import WorkerThread
+
+plugin_types = {
+    'ctl': 'Controllers',
+    'sys': 'Systems',
+    'est': 'Estimators',
+    'dist': 'Disturbances',
+}
+
+class CSBPluginManager(QMainWindow):
+    def __init__(self, backend, parent=None):
+        QMainWindow.__init__(self, parent=parent)
+        uic.loadUi('ui/plugin_manager.ui', self)
+        self.backend = backend
+        self.load_plugins()
+        self.init()
+        self.active_plugins = []
+        self.libraryListWidget.setCurrentRow(0)
+
+
+    def init(self):
+        self.libraryListWidget.itemSelectionChanged.connect(self.on_library_selected)
+        self.libraryListWidget.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+
+        for t in plugin_types.values():
+            tab = QWidget()
+            layout = QVBoxLayout()
+            tab.setLayout(layout)
+            # add on tab select
+            self.tabWidget.addTab(tab, t)
+        self.tabWidget.currentChanged.connect(self.on_tab_selected)
+
+        # on app click, remove active plugins
+        self.centralwidget.mousePressEvent = self.on_app_clicked
+        self.openContextBtn.clicked.connect(self.open_context)
+
+        self.registerComponentBtn.clicked.connect(self.register_component)
+        self.unregisterComponentBtn.clicked.connect(self.unregister_component)
+        self.refreshLibraryBtn.clicked.connect(self.refresh_library)
+        self.unregisterLibraryBtn.clicked.connect(self.unregister_library)
+        self.createLibraryBtn.clicked.connect(self.create_library)
+
+        self.exportLibraryBtn.clicked.connect(self.export_library)
+        self.installLibraryBtn.clicked.connect(self.install_library)
+        self.linkLibraryBtn.clicked.connect(self.link_library)
+
+    def on_app_clicked(self, event):
+        self.clear_selected_plugins()
+
+
+    def ask_library_path(self):
+
+        fileName, _ = QFileDialog.getOpenFileName(self, "Select Library File", "",
+                                                  "Shared Library File (*.json)")
+        # check that it is package.json
+        if fileName and os.path.basename(fileName) == "package.json":
+            return fileName
+        return None
+
+
+    def log(self, msg):
+        from datetime import datetime
+        t_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        max_lines = 1000
+        if self.logTxt.document().blockCount() > max_lines:
+            # clear last 100 lines
+            cursor = self.logTxt.textCursor()
+            cursor.movePosition(cursor.Start)
+            for _ in range(100):
+                cursor.select(cursor.LineUnderCursor)
+                cursor.removeSelectedText()
+                cursor.deleteChar()
+            self.logTxt.setTextCursor(cursor)
+        self.logTxt.append(f"[{t_now}]: {msg}")
+
+    def register_component_library(self, link_install):
+        path = self.ask_library_path()
+        if path is None:
+            self.log("Invalid library file selected.")
+            return
+        self.log(f"Registering library from '{path}'. This may take a few moments...")
+
+        def on_finish(result, error):
+            self.log("Library registered.")
+            self.load_plugins()
+            self.setEnabled(True)
+
+        def run():
+            self.backend.register_component_library(Path(path).parent, int(link_install), 0)
+
+        self.t = WorkerThread(self, run)
+        self.t.finished.connect(on_finish)
+        self.t.start()
+        self.setEnabled(False)
+
+
+    def create_library(self):
+
+        name, ok = QInputDialog.getText(self, 'Create Library', 'Enter library name:')
+        if not ok or not name:
+            self.log("Invalid library name.")
+            return
+        self.log(f"Creating library '{name}'. This may take a few moments...")
+
+        self.backend.get_or_create_component_library(name)
+        self.load_plugins()
+        self.fill_tab(self.tabWidget.currentIndex())
+        self.log(f"Library '{name}' created.")
+
+    def install_library(self):
+        self.register_component_library(link_install=False)
+
+    def link_library(self):
+        self.register_component_library(link_install=True)
+
+    def export_library(self):
+        pass
+
+    def refresh_library(self):
+
+        lib = self.get_active_library()
+        if lib is None:
+            QMessageBox.warning(self, "Warning", "No library selected.")
+            return
+        self.log(f"Refreshing library '{lib}'. This may take a few moments...")
+
+        def on_finish(result, error):
+            self.log("Library refreshed.")
+            self.load_plugins()
+            self.fill_tab(self.tabWidget.currentIndex())
+            self.setEnabled(True)
+
+        def run():
+            self.backend.refresh_component_library(lib)
+
+        self.t = WorkerThread(self, run)
+        self.t.finished.connect(on_finish)
+        self.t.start()
+        self.setEnabled(False)
+
+
+
+
+    def register_component(self):
+        pass
+
+    def unregister_component(self):
+        pass
+
+    def unregister_library(self):
+        # are you sure
+        if self.get_active_library() is None:
+            QMessageBox.warning(self, "Warning", "No library selected.")
+            return
+        reply = QMessageBox.question(self, 'Unregister Library',
+                                     f"Are you sure you want to unregister library '{self.get_active_library()}'?",
+                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                     QMessageBox.StandardButton.No)
+        if reply == QMessageBox.StandardButton.Yes:
+            self.backend.remove_component_library(self.get_active_library())
+            self.load_plugins()
+            self.fill_tab(self.tabWidget.currentIndex())
+
+    def clear_selected_plugins(self):
+        for p in self.active_plugins:
+            # check if p is not deleted
+            if p is not None:
+                p.setStyleSheet("border: 1px solid transparent;")
+
+        self.active_plugins = []
+
+    def on_plugin_selected(self, widget):
+        if widget:
+
+            # if ctrl is pressed, allow multiple selection
+            if not (QApplication.keyboardModifiers() & QtCore.Qt.KeyboardModifier.ControlModifier):
+                self.clear_selected_plugins()
+            # if already selected, deselect
+            if widget in self.active_plugins:
+                widget.setStyleSheet("border: 1px solid transparent;")
+                self.active_plugins.remove(widget)
+                return
+
+
+            # set border only for this widget, not for its children
+            widget.setStyleSheet("border: 1px solid blue;")
+            for c in widget.children():
+                if isinstance(c, QWidget):
+                    c.setStyleSheet("border: 1px solid transparent;")
+            self.active_plugins.append(widget)
+
+    def get_active_library(self):
+        selected_items = self.libraryListWidget.selectedItems()
+        if selected_items:
+            item = selected_items[0]
+            return item.text()
+        return None
+
+    def on_tab_selected(self, index):
+        self.fill_tab(index)
+
+
+    def open_plugin_file(self, plugin):
+        path = plugin.get('Path', "")
+        if plugin["Type"] == 'slx':
+            path = path.split(':')[0]
+            self.log(f"Cannot open Simulink plugin file '{path}' from here. " \
+            "Please open it from MATLAB.")
+            return
+        if path is not None and os.path.exists(path):
+            if sys.platform == "win32":
+                os.startfile(path)
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", path])
+            else:
+                subprocess.Popen(["xdg-open", path])
+        else:
+            QMessageBox.warning(self, "Warning", "Plugin file path not found.")
+
+    def open_context(self):
+
+        lib = self.get_active_library()
+        if lib is None:
+            lib = self.libraryListWidget.item(0).text()
+
+        l = next((l for l in self.libraries if l['Name'] == lib), None)
+        # open folder in file explorer, for all os
+        path = l.get('Path', None)
+        if path is not None and os.path.exists(path):
+            if sys.platform == "win32":
+                os.startfile(path)
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", path])
+            else:
+                subprocess.Popen(["xdg-open", path])
+        else:
+            QMessageBox.warning(self, "Warning", "Library path not found.")
+
+    def on_plugin_double_clicked(self, plugin):
+        # open plugin file
+        self.open_plugin_file(plugin)
+
+
+    def fill_tab(self, index):
+
+        lib = self.get_active_library()
+        if lib is None:
+            lib = self.libraryListWidget.item(0).text()
+        plugins = self.plugins.get(lib, {})
+        plugin_type = list(plugin_types.keys())[index]
+        plugin_list = plugins.get(plugin_type, [])
+        if not isinstance(plugin_list, list):
+            plugin_list = [plugin_list]
+        lay = QVBoxLayout()
+        w = QWidget()
+        w.setLayout(lay)
+        for i, p in enumerate(plugin_list):
+            item_lay = QHBoxLayout()
+            label = QLabel(p['Name'])
+            item_lay.addWidget(label)
+            lib = QLabel(f"({p['Lib']})")
+            item_lay.addWidget(lib)
+            typ = QLabel(f"({p['Type']})")
+            item_lay.addWidget(typ)
+            item_lay.addStretch()
+            # set border when active on click and callback
+            item_lay_widget = QWidget()
+            item_lay_widget.setLayout(item_lay)
+            item_lay_widget.setObjectName("pluginItem")
+            item_lay_widget.setStyleSheet("border: 1px solid transparent;")
+            item_lay_widget.mousePressEvent = lambda event, w=item_lay_widget: self.on_plugin_selected(w)
+            item_lay_widget.mouseDoubleClickEvent = lambda event, p=p: self.on_plugin_double_clicked(p)
+            lay.addWidget(item_lay_widget)
+            # if clicked, show details
+        lay.addStretch()
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(w)
+        current_tab = self.tabWidget.widget(index)
+        # clear current tab layout
+        for i in reversed(range(current_tab.layout().count())):
+            current_tab.layout().itemAt(i).widget().setParent(None)
+        current_tab.layout().addWidget(scroll)
+
+
+    def on_library_selected(self):
+        self.fill_tab(self.tabWidget.currentIndex())
+
+    def fill_data(self):
+        self.libraryListWidget.clear()
+        for lib, p in self.plugins.items():
+            item = QListWidgetItem(lib)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, p)
+            self.libraryListWidget.addItem(item)
+
+    def load_plugins(self):
+        self.plugins = self.backend.get_available_plugins()
+        self.libraries = self.backend.list_component_libraries()
+        self.fill_data()
+

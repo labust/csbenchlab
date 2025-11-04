@@ -1,0 +1,84 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Main",
+            "type": "debugpy",
+            "request": "launch",
+            "env": {
+                "CSB_M_PATH": "/home/luka/matlab/csbenchlab"
+            },
+            "program": "${workspaceFolder}/csbenchlab.py",
+            "console": "integratedTerminal",
+            "args": ["-backend", "matlab", //"--daemon-restart",
+                     "--debug"],
+            "justMyCode": false
+
+        },
+        {
+            "name": "Python Debugger: Daemon",
+            "type": "debugpy",
+            "request": "launch",
+            "env": {
+                "CSB_M_PATH": "/home/luka/matlab/csbenchlab"
+            },
+            "program": "${workspaceFolder}/matlab/matlab_daemon.py",
+            "console": "integratedTerminal",
+            "args": ["-backend", "matlab",
+                    "/home/luka/fer/csbenchlab_py/demo_env"
+                     ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Eval Plugin Params",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/m_scripts/eval_plugin_parameters.py",
+            "console": "integratedTerminal",
+            "args": ["--param-file", "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc/parts/controllers/f59ee77a-779f-4908-b3a9-8bc2643b5716/params/f59ee77a-779f-4908-b3a9-8bc2643b5716.py",
+                     "--plugin-desc-path", "/tmp/tpe4cc134a_2ebb_4fd0_b0c5_4b98d39cf51c.json",
+                     "--plugin-path", "/home/luka/matlab/csbenchlab/registry/data_driven_lib_new/src/DeePC.py"
+                     ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Eval Scenario Descriptions",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/m_scripts/eval_scenario_descriptions.py",
+            "console": "integratedTerminal",
+            "args": ["--env-path", "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel",
+                     "--env-data-path", "/tmp/tp7cf64903_0e66_49f4_816e_a72359e3ece8.json"
+                     ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Eval Metrics",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/m_scripts/eval_metrics.py",
+            "console": "integratedTerminal",
+            "args": ["--env-path", "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel",
+                     "--results-path", "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel/results.mat"
+                     ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Run debug component",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/debug/run_debug_component.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CSB_LIB_PATH": "/home/luka/matlab/csbenchlab/registry"
+            },
+            "args": ["--env-path", "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc",
+                    "--name", "DeePC_acados", "--mux-inputs", "1", "--mux-outputs", "1"
+                     ],
+            "justMyCode": false
+        }
+    ]
+}
