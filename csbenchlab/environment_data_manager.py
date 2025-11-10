@@ -2,10 +2,10 @@ import json5, json
 from pathlib import Path
 from types import SimpleNamespace
 import shutil, os
-from csbenchlab.data_desc import COMPONENT_DATA_DESC
+from csbenchlab.data_desc import COMPONENT_DATA_DESC, get_component_context_path
 
-from csbenchlab.parameter_handler import ParameterHandler
-from csbenchlab.component_file_handler import ComponentFileHandler
+from qt.csbenchlab.parameter_handler import ParameterHandler
+from qt.csbenchlab.component_file_handler import ComponentFileHandler
 from copy import deepcopy
 
 
@@ -191,20 +191,13 @@ class EnvironmentDataManager:
         if component_type in self.standalone_comp_managers:
             return self.standalone_comp_managers[component_type]
         else:
-            parent_type = component.get("ParentComponentType", None)
-            if parent_type not in self.standalone_comp_managers:
-                raise ValueError(f"Unknown parent component type: {parent_type}")
             parent_id = component.get("ParentComponentId", None)
-            if parent_id is None or parent_id == "":
-                raise ValueError(f"Subcomponent must have 'ParentComponentId' field")
-            subctl_path = Path(self.standalone_comp_managers[parent_type].path) / parent_id / 'subcomponents'
             if parent_id not in self.subcomponent_managers:
                 desc = COMPONENT_DATA_DESC[component_type]
-                rel_path = desc.get("destination_path", "")
-                subctl_path = subctl_path / rel_path
+                comp_destination = get_component_context_path(component).parent
                 file_name = desc["data_file"]
                 data_desc_class = desc.get("data_desc_class", None)
-                self.subcomponent_managers[parent_id] = ComponentDataManager(subctl_path, file_name, data_desc_class)
+                self.subcomponent_managers[parent_id] = ComponentDataManager(comp_destination, file_name, data_desc_class)
             return self.subcomponent_managers[parent_id]
 
 
@@ -222,7 +215,6 @@ class EnvironmentDataManager:
             return self.standalone_comp_managers[component_type].load_all()
         else:
             raise ValueError(f"Unknown component type: {component_type}")
-
 
     def load_environment_data(self):
         data = SimpleNamespace()
@@ -324,7 +316,7 @@ class EnvironmentDataManager:
         component_type = component.get("ComponentType", None)
         if component_type not in self.standalone_comp_managers:
             raise ValueError(f"Unknown component type: {component_type}")
-        dest_folder = self.env_path / STANDALONE_COMPONENT_PATHS[component_type][0] / component["Id"]
+        dest_folder = self.env_path / COMPONENT_DATA_DESC[component_type]['destination_path'] / component["Id"]
         if dest_folder.exists():
             raise FileExistsError(f"Component with Id '{component['Id']}' already exists.")
 

@@ -54,7 +54,7 @@ class DataDescBase(ABC):
 
 def get_default_callbacks_txt_file(comp):
         return f"""
-from csbenchlab.param_typing import *
+from csbenchlab.common_types import *
 import numpy as np
 
 # Override callback functions for component {comp.get('Id', '')}

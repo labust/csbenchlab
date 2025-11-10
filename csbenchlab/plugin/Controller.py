@@ -3,7 +3,6 @@ from abc import abstractmethod
 import json
 from . import PluginBase
 import numpy as np
-from m_scripts.eval_plugin_parameters import eval_plugin_params
 
 class Controller(PluginBase):
 

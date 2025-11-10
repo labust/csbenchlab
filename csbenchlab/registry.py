@@ -3,7 +3,7 @@ from pathlib import Path
 from csbenchlab.plugin_helpers import parse_plugin_type, get_plugin_class
 
 
-def get_plugin_info(plugin_path: str) -> dict:
+def get_plugin_info_from_file(plugin_path: str) -> dict:
     """
     Retrieves information about a plugin by its name.
 

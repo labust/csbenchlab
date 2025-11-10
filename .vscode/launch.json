@@ -5,18 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python Debugger: Main",
             "type": "debugpy",
             "request": "launch",
             "env": {
-                "CSB_M_PATH": "/home/luka/matlab/csbenchlab"
+                "CSB_M_PATH": "/home/luka/matlab/csbenchlab",
+                "CSB_LIB_PATH": "/home/luka/matlab/csbenchlab/registry"
             },
             "program": "${workspaceFolder}/csbenchlab.py",
             "console": "integratedTerminal",
-            "args": ["-backend", "matlab", //"--daemon-restart",
-                     "--debug"],
+            "args": [
+                "-backend",
+                "matlab", "--daemon-restart",
+                "--debug"
+            ],
             "justMyCode": false
-
         },
         {
             "name": "Python Debugger: Daemon",
@@ -27,21 +37,28 @@
             },
             "program": "${workspaceFolder}/matlab/matlab_daemon.py",
             "console": "integratedTerminal",
-            "args": ["-backend", "matlab",
-                    "/home/luka/fer/csbenchlab_py/demo_env"
-                     ],
+            "args": [
+                "-backend",
+                "matlab",
+                "/home/luka/fer/csbenchlab_py/demo_env"
+            ],
             "justMyCode": false
         },
         {
-            "name": "Python Debugger: Eval Plugin Params",
+            "name": "Python Debugger: Eval Environment Params",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/m_scripts/eval_plugin_parameters.py",
+            "program": "${workspaceFolder}/m_scripts/eval_component_params.py",
             "console": "integratedTerminal",
-            "args": ["--param-file", "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc/parts/controllers/f59ee77a-779f-4908-b3a9-8bc2643b5716/params/f59ee77a-779f-4908-b3a9-8bc2643b5716.py",
-                     "--plugin-desc-path", "/tmp/tpe4cc134a_2ebb_4fd0_b0c5_4b98d39cf51c.json",
-                     "--plugin-path", "/home/luka/matlab/csbenchlab/registry/data_driven_lib_new/src/DeePC.py"
-                     ],
+            "args": [
+                "--env-path",
+                "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc",
+                "--lib-path",
+                "/home/luka/matlab/csbenchlab/registry",
+                "--component-info-path",
+                "/tmp/tp3074f5d2_c318_41c0_ad59_13b2b8c70b33.json",
+                "--py-as-py"
+            ],
             "justMyCode": false
         },
         {
@@ -50,9 +67,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/m_scripts/eval_scenario_descriptions.py",
             "console": "integratedTerminal",
-            "args": ["--env-path", "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel",
-                     "--env-data-path", "/tmp/tp7cf64903_0e66_49f4_816e_a72359e3ece8.json"
-                     ],
+            "args": [
+                "--env-path",
+                "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel",
+                "--env-data-path",
+                "/tmp/tp7cf64903_0e66_49f4_816e_a72359e3ece8.json"
+            ],
             "justMyCode": false
         },
         {
@@ -61,9 +81,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/m_scripts/eval_metrics.py",
             "console": "integratedTerminal",
-            "args": ["--env-path", "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel",
-                     "--results-path", "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel/results.mat"
-                     ],
+            "args": [
+                "--env-path",
+                "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel",
+                "--results-path",
+                "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel/results.mat"
+            ],
             "justMyCode": false
         },
         {
@@ -75,9 +98,16 @@
             "env": {
                 "CSB_LIB_PATH": "/home/luka/matlab/csbenchlab/registry"
             },
-            "args": ["--env-path", "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc",
-                    "--name", "DeePC_acados", "--mux-inputs", "1", "--mux-outputs", "1"
-                     ],
+            "args": [
+                "--env-path",
+                "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc",
+                "--name",
+                "DeePC_acados",
+                "--mux-inputs",
+                "1",
+                "--mux-outputs",
+                "1"
+            ],
             "justMyCode": false
         }
     ]

@@ -52,7 +52,6 @@ class CSBPluginManager(QMainWindow):
     def on_app_clicked(self, event):
         self.clear_selected_plugins()
 
-
     def ask_library_path(self):
 
         fileName, _ = QFileDialog.getOpenFileName(self, "Select Library File", "",
@@ -67,16 +66,18 @@ class CSBPluginManager(QMainWindow):
         from datetime import datetime
         t_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         max_lines = 1000
+        cursor = self.logTxt.textCursor()
         if self.logTxt.document().blockCount() > max_lines:
             # clear last 100 lines
-            cursor = self.logTxt.textCursor()
-            cursor.movePosition(cursor.Start)
+            cursor.movePosition(cursor.End)
             for _ in range(100):
                 cursor.select(cursor.LineUnderCursor)
                 cursor.removeSelectedText()
                 cursor.deleteChar()
             self.logTxt.setTextCursor(cursor)
-        self.logTxt.append(f"[{t_now}]: {msg}")
+        cursor.setPosition(0)
+        self.logTxt.setTextCursor(cursor)
+        self.logTxt.insertPlainText(f"[{t_now}] {msg}\n")
 
     def register_component_library(self, link_install):
         path = self.ask_library_path()
@@ -88,15 +89,11 @@ class CSBPluginManager(QMainWindow):
         def on_finish(result, error):
             self.log("Library registered.")
             self.load_plugins()
-            self.setEnabled(True)
 
         def run():
             self.backend.register_component_library(Path(path).parent, int(link_install), 0)
 
-        self.t = WorkerThread(self, run)
-        self.t.finished.connect(on_finish)
-        self.t.start()
-        self.setEnabled(False)
+        self.do_in_thread(run, on_finish)
 
 
     def create_library(self):
@@ -118,8 +115,27 @@ class CSBPluginManager(QMainWindow):
     def link_library(self):
         self.register_component_library(link_install=True)
 
+    def do_in_thread(self, func, on_finish):
+        self.t = WorkerThread(self, func)
+        def on_finish_wrapper(*args):
+            self.setEnabled(True)
+            on_finish(*args)
+        self.t.finished.connect(on_finish_wrapper)
+        self.t.start()
+        self.setEnabled(False)
+
     def export_library(self):
+        lib = self.get_active_library()
+        if lib is None:
+            QMessageBox.warning(self, "Warning", "No library selected.")
+            return
+        export_path = QFileDialog.getExistingDirectory(self, "Select Export Directory", "")
+        if not export_path:
+            self.log("Invalid export directory selected.")
+            return
         pass
+        self.backend.export_component_library(lib, export_path)
+        self.log(f"Library '{lib}' exported to '{export_path}'.")
 
     def refresh_library(self):
 
@@ -130,7 +146,7 @@ class CSBPluginManager(QMainWindow):
         self.log(f"Refreshing library '{lib}'. This may take a few moments...")
 
         def on_finish(result, error):
-            self.log("Library refreshed.")
+            self.log(f"Library '{lib}' refreshed.")
             self.load_plugins()
             self.fill_tab(self.tabWidget.currentIndex())
             self.setEnabled(True)
@@ -138,19 +154,87 @@ class CSBPluginManager(QMainWindow):
         def run():
             self.backend.refresh_component_library(lib)
 
-        self.t = WorkerThread(self, run)
-        self.t.finished.connect(on_finish)
-        self.t.start()
-        self.setEnabled(False)
-
-
-
+        self.do_in_thread(run, on_finish)
 
     def register_component(self):
-        pass
+        lib = self.get_active_library()
+        if lib is None:
+            QMessageBox.warning(self, "Warning", "No library selected.")
+            return
+        # .m, .py or .slx files
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select Component File", "",
+                                                  "Component Files (*.m *.py *.slx)")
+        if not file_path:
+            self.log("No component file selected.")
+            return
+
+        if file_path.endswith('.slx'):
+            block_path = QInputDialog.getText(self, 'Simulink Block Path',
+                                              'Enter Simulink block path (e.g., subsystem/myblock):')[0]
+            if not block_path:
+                self.log("Invalid Simulink block path.")
+                return
+        l = next((l for l in self.libraries if l['Name'] == lib), None)
+        # open folder in file explorer, for all os
+        path = l.get('Path', None)
+        if not file_path.startswith(path):
+            # ask user to copy file to library path
+            reply = QMessageBox.question(self, 'Copy Component File',
+                                         f"The selected component file is not in the library path.\n"
+                                         f"Do you want to copy it to the library '{lib}'?",
+                                         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                         QMessageBox.StandardButton.No)
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+            import shutil
+            # copy file to library path
+            dest_path = os.path.join(path, 'src', os.path.basename(file_path))
+            shutil.copyfile(file_path, dest_path)
+            file_path = dest_path
+            self.log(f"Component file '{file_path}' copied to library '{lib}'.")
+
+        full_component_path = file_path
+        if file_path.endswith('.slx'):
+            full_component_path = f"{file_path}:{block_path}"
+        self.log(f"Registering component from '{file_path}' to library '{lib}'. This may take a few moments...")
+        def run():
+            self.backend.register_component_from_file(full_component_path, lib)
+
+        def on_finish(result, error):
+            if error is not None:
+                self.log(f"Failed to register component '{full_component_path}' in library '{lib}': {error}")
+                return
+            if result is False:
+                self.log(f"Failed to register component '{full_component_path}' in library '{lib}'.")
+            else:
+                self.log(f"Component '{full_component_path}' registered in library '{lib}'.")
+                self.load_plugins()
+
+        self.do_in_thread(run, on_finish)
 
     def unregister_component(self):
-        pass
+        lib = self.get_active_library()
+        if lib is None:
+            QMessageBox.warning(self, "Warning", "No library selected.")
+            return
+
+        selected_plugins = self.active_plugins
+        if not selected_plugins:
+            QMessageBox.warning(self, "Warning", "No plugin selected.")
+            return
+
+        reply = QMessageBox.question(self, 'Unregister Component',
+                                        f"Are you sure you want to unregister the selected component(s) from library '{lib}'?",
+                                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                        QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        for p in selected_plugins:
+            name = p.findChild(QLabel).text()
+            self.backend.unregister_component(name, lib)
+            self.log(f"Component '{name}' unregistered from library '{lib}'.")
+        self.load_plugins()
 
     def unregister_library(self):
         # are you sure
@@ -169,8 +253,12 @@ class CSBPluginManager(QMainWindow):
     def clear_selected_plugins(self):
         for p in self.active_plugins:
             # check if p is not deleted
-            if p is not None:
-                p.setStyleSheet("border: 1px solid transparent;")
+            try:
+                if p is not None and p.isVisible():
+                    p.setStyleSheet("border: 1px solid transparent;")
+            except:
+                pass
+
 
         self.active_plugins = []
 

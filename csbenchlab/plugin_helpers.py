@@ -9,17 +9,17 @@ def parse_plugin_type(plugin_class):
     """
     if any([base for base in plugin_class.__bases__ \
             if str(base) ==  "<class 'csbenchlab.plugin.DynSystem.DynSystem'>"]):
-        return 1
+        return 'sys'
     if any([base for base in plugin_class.__bases__ \
             if str(base) ==  "<class 'csbenchlab.plugin.Controller.Controller'>"]):
-        return 2
+        return 'ctl'
     if any([base for base in plugin_class.__bases__ \
             if str(base) ==  "<class 'csbenchlab.plugin.Estimator.Estimator'>"]):
-        return 3
+        return 'est'
     if any([base for base in plugin_class.__bases__ \
             if str(base) ==  "<class 'csbenchlab.plugin.DisturbanceGenerator.DisturbanceGenerator'>"]):
-        return 4
-    return 0
+        return 'dist'
+    return ''
 
 
 

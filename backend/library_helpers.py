@@ -1,7 +1,31 @@
-from csbenchlab.csb_paths import get_app_registry_path
-import os, json5, warnings, shutil
+from csbenchlab.csb_app_setup import get_app_registry_path
+import os, json5, json, warnings, shutil
 
-def get_library_path(lib_name):
+
+def get_available_plugins(cls):
+    reg = get_app_registry_path()
+    fs = os.listdir(reg)
+    plugins = {}
+    for n in fs:
+        # Skip '.' '..' 'slprj'
+        if n in ['.', '..', 'slprj']:
+            continue
+        full_path = os.path.join(reg, n)
+        if os.path.isdir(full_path):
+            manifest_file = os.path.join(full_path, 'autogen', 'manifest.json')
+        elif n.endswith('.json'):
+            with open(full_path, 'r') as f:
+                s = json5.load(f)
+                lib = s['Path']
+                manifest_file = os.path.join(lib, 'autogen', 'manifest.json')
+        if os.path.isfile(manifest_file):
+            with open(manifest_file, 'r') as f:
+                data = json5.load(f)
+                plugins[data["Library"]] = data["Registry"]
+    return plugins
+
+
+def get_library_path(cls, lib_name):
     reg = get_app_registry_path()
     fs = os.listdir(reg)
 
@@ -23,11 +47,11 @@ def get_library_path(lib_name):
     raise FileNotFoundError(f"Library '{lib_name}' not found")
 
 
-def get_component_info(lib_name_or_path, component_name):
+def get_plugin_info(cls, lib_name_or_path, component_name):
     if os.path.isdir(lib_name_or_path):
         lib_path = lib_name_or_path
     else:
-        lib_path = get_library_path(lib_name_or_path)
+        lib_path = cls.get_library_path(lib_name_or_path)
 
     manifest_file = os.path.join(lib_path, 'autogen', 'manifest.json')
     if not os.path.isfile(manifest_file):
@@ -35,38 +59,37 @@ def get_component_info(lib_name_or_path, component_name):
 
     with open(manifest_file, 'r') as f:
         plugins = json5.load(f)
+    registry = plugins.get('Registry', {})
+    for comp_type, comps in registry.items():
+        for comp in comps:
+            if comp['Name'] == component_name:
+                return comp
 
-    controllers = plugins['registry']['ctl']
-    for plugin in controllers:
-        if plugin.get('Name', '') == component_name:
-            return plugin
-
-    raise ValueError(f"Component '{component_name}' not found in library '{lib_name_or_path}'")
-
-
-def get_library_info(lib_name_or_path, only_registered=True):
+def get_library_info(cls, lib_name_or_path, only_registered=True):
     if only_registered:
-        if not is_valid_component_library(lib_name_or_path):
+        if cls.is_valid_component_library(lib_name_or_path):
+            path = lib_name_or_path
+        else:
             path = get_library_path(lib_name_or_path)  # You need to define this function accordingly
         if not os.path.isdir(lib_name_or_path) and not os.path.isdir(path):
             raise ValueError(f"Library '{lib_name_or_path}' is not a valid library")
         with open(os.path.join(path, 'package.json'), 'r') as f:
-            info = json.load(f)
+            info = json5.load(f)
     else:
-        if is_valid_component_library(lib_name_or_path):  # You need to define this function accordingly
+        if cls.is_valid_component_library(lib_name_or_path):  # You need to define this function accordingly
             with open(os.path.join(lib_name_or_path, 'package.json'), 'r') as f:
-                info = json.load(f)
+                info = json5.load(f)
         else:
             raise ValueError(f"Path '{lib_name_or_path}' is not a valid library")
     return info
 
 
-def is_valid_component_library(path):
+def is_valid_component_library(cls, path):
     return os.path.isfile(os.path.join(path, 'package.json')) and \
            os.path.isfile(os.path.join(path, 'plugins.json'))
 
 
-def list_component_libraries(ignore_csbenchlab=True):
+def list_component_libraries(cls, ignore_csbenchlab=True):
     libs = []
     reg = get_app_registry_path()
     fs = os.listdir(reg)
@@ -77,73 +100,28 @@ def list_component_libraries(ignore_csbenchlab=True):
             continue
         full_path = os.path.join(reg, n)
         if os.path.isdir(full_path):
-            if is_valid_component_library(full_path):
+            if cls.is_valid_component_library(full_path):
                 libs.append(full_path)
         elif n.endswith('.json'):
             with open(full_path, 'r') as f:
                 s = json.load(f)
                 lib = s['Path']
-                if os.path.isdir(lib) and is_valid_component_library(lib):
+                if os.path.isdir(lib) and cls.is_valid_component_library(lib):
                     libs.append(lib)
     return libs
 
-
-def list_component_libraries(ignore_csbenchlab=False):
-    reg = get_app_registry_path()
-    fs = os.listdir(reg)
-    libs = []
-    for n in fs:
-        if n in ['.', '..', 'slprj']:
-            continue
-        if ignore_csbenchlab and n == 'csbenchlab':
-            continue
-        full_path = os.path.join(reg, n)
-        if os.path.isdir(full_path):
-            meta_path = os.path.join(full_path, 'package.json')
-            if os.path.exists(meta_path):
-                with open(meta_path, 'r') as f:
-                    meta = json.load(f)
-                version = meta.get('Version', None)
-            else:
-                version = None
-            libs.append({
-                'Name': n,
-                'Type': 'install',
-                'Path': full_path,
-                'Version': version
-            })
-        elif n.endswith('.json'):
-            file_path = os.path.join(reg, n)
-            with open(file_path, 'r') as f:
-                s = json.load(f)
-            lib_path = s.get('Path', None)
-            lib_version = s.get('Version', None)
-            if not is_valid_component_library(lib_path):  # Define this function
-                warnings.warn(f"Library {n[:-5]} is not valid. Its path does not exist. Skipping")
-                continue
-            libs.append({
-                'Name': n[:-5],  # Removing '.json' extension
-                'Type': 'link',
-                'Path': lib_path,
-                'Version': lib_version
-            })
-    return libs
-
-
-def refresh_component_library(lib_name):
+def refresh_component_library(cls, lib_name):
     path = get_library_path(lib_name)
     if not is_valid_component_library(path):
         raise ValueError(f"Library '{lib_name}' is not a valid library")
-    # TODO:
-    pass
+    raise NotImplementedError("Function refresh_component_library is not yet implemented")
 
-def register_component_library(path, link_register=False, ask_dialog=True):
-    # TODO
-    pass
+def register_component_library(cls, path, link_register=False, ask_dialog=True):
+    raise NotImplementedError("Function register_component_library is not yet implemented")
 
 
-def get_or_create_component_library(lib_name, close_after_creation=False):
-
+def get_or_create_component_library(cls, lib_name, close_after_creation=False):
+    raise NotImplementedError("Function get_or_create_component_library is not yet implemented")
     def create_component_library(path, link_register):
         if path is None:
             dest_path = os.getcwd()
@@ -169,7 +147,7 @@ def get_or_create_component_library(lib_name, close_after_creation=False):
         handle['name'] = name
 
         # These functions need to be implemented or adapted to Python environment
-        handle['sh'] = new_system(syspath, 'Library')  
+        handle['sh'] = new_system(syspath, 'Library')
         save_system(handle['sh'], os.path.join(autogen_folder, syspath))
         handle['ch'] = new_system(contpath, 'Library')
         save_system(handle['ch'], os.path.join(autogen_folder, contpath))
@@ -248,4 +226,5 @@ def get_or_create_component_library(lib_name, close_after_creation=False):
 
 
 
-__all__ = ['get_library_path', 'get_library_info', 'is_valid_component_library', 'list_component_libraries', 'get_component_info',]
+
+__all__ = ['get_library_path', 'get_library_info', 'is_valid_component_library', 'list_component_libraries', 'get_plugin_info', 'get_available_plugins', 'register_component_library', 'get_or_create_component_library']

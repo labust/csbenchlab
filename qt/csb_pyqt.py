@@ -3,9 +3,10 @@ from PyQt6.QtWidgets import *
 from PyQt6 import uic, QtCore
 import sys, os
 
-from csbenchlab.parameter_handler import ParameterHandler
+from qt.csbenchlab.parameter_handler import ParameterHandler
 from qt.csb_pyqt_env_manager import CSBEnvGui
 from qt.csb_pyqt_plugin_manager import CSBPluginManager
+from csbenchlab.csb_app_setup import get_appdata_dir
 
 
 class CSBenchlabGUI(QMainWindow):
@@ -17,7 +18,7 @@ class CSBenchlabGUI(QMainWindow):
         self.openEnvironmentBtn.clicked.connect(self.open_environment)
         self.newEnvironmentBtn.clicked.connect(self.new_environment)
         self.removeEnvironmentBtn.clicked.connect(self.remove_environment)
-        self.appdata_dir = os.path.join(str(Path.home()), '.csbenchlab')
+        self.appdata_dir = get_appdata_dir()
         self.debug = debug
         self.init()
 

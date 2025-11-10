@@ -4,6 +4,7 @@ from PyQt6 import uic, QtCore
 from csbenchlab.env_model import ControllerComponent, Controller
 from widgets.plugin_selector_widget import PluginSelectorWidget
 from uuid import uuid4
+import numpy as np
 
 class ControllerWidget(QWidget):
     model = Controller
@@ -95,7 +96,6 @@ class ControllerWidget(QWidget):
             self.record_change()
 
     def on_description_changed(self):
-
         idx = self.subcontrollerList.currentRow()
         text = self.descriptionTxt.toPlainText()
         if idx < 0:
@@ -105,12 +105,30 @@ class ControllerWidget(QWidget):
         if not self._fill:
             self.record_change()
 
+    def check_io_mux_value_(self, text):
+        err_return = (False, [])
+        try:
+            if text.strip() == "":
+                return (True, '')
+            # evaluate the text
+            v = eval(text)
+            if isinstance(v, int):
+                return (True, v)
+            # if list, check that all are ints
+            if isinstance(v, (list, tuple, np.ndarray)):
+                for vi in v:
+                    if not isinstance(vi, int):
+                        return err_return
+                return (True, v)
+            return err_return
+        except Exception:
+            return err_return
+
     def on_input_mux_changed(self, text):
         idx = self.subcontrollerList.currentRow()
 
-        try:
-            v = int(text)
-        except ValueError:
+        ok, v = self.check_io_mux_value_(text)
+        if not ok:
             return
 
         if idx < 0:
@@ -123,9 +141,9 @@ class ControllerWidget(QWidget):
             self.record_change()
 
     def on_output_mux_changed(self, text):
-        try:
-            v = int(text)
-        except ValueError:
+
+        ok, v = self.check_io_mux_value_(text)
+        if not ok:
             return
 
         idx = self.subcontrollerList.currentRow()

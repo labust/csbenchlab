@@ -17,7 +17,7 @@ class ScenarioDataDesc(DataDescBase):
         }
 
     def get_default_override_system_params_txt_file(self, scenario):
-        return f"""from csbenchlab.param_typing import *
+        return f"""from csbenchlab.common_types import *
 
 # Override system parameters file for scenario {scenario.get('Id', '')}
 
@@ -52,13 +52,13 @@ def reference(scenario, dt, system_dims):
     def get_default_scenario_txt_file(self, scenario):
         return """from csbenchlab.helpers.reference_helpers import *
 from csbenchlab.helpers.ic_helpers import *
-from csbenchlab.param_typing import*
+from csbenchlab.common_types import*
 import numpy as np
 
 def scenario(scenario, dt, system_dims):
 
     overrides = {}
-    reference = generate_steps(scenario, dt, system_dims, [1], 10)
+    reference = generate_steps(scenario, dt, system_dims, [1], 0)
     ic = np.zeros((system_dims["Outputs"]))
 
     return ScenarioOptions(

@@ -9,7 +9,7 @@ import numpy as np
 from csbenchlab.environment_data_manager import EnvironmentDataManager
 from csbenchlab.plugin_helpers import import_module_from_path
 import scipy.io as sio
-from csbenchlab.param_typing import MultiScenario
+from csbenchlab.common_types import MultiScenario
 
 
 CALLBACKS = {

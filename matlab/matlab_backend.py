@@ -19,8 +19,9 @@ class MatlabBackend:
         'register_component_library': ("register_component_library('{}', {})", 0),
         'get_or_create_component_library': ("get_or_create_component_library('{}', 1)", 0),
         'remove_component_library': ("remove_component_library('{}')", 0),
-        'register_component': ("register_component({})", 0),
-        'unregister_component': ("unregister_component('{}')", 0),
+        'register_component_from_file': ("register_component_from_file('{}', '{}')", 1),
+        'unregister_component': ("unregister_component('{}', '{}')", 0),
+        'export_component_library': ("export_component_library('{}', '{}')", 0),
         'get_component_info': ("get_component_info('{}')", 1),
         'get_available_plugins': ("get_available_plugins(); ", 'dict'),
         'get_component_params': ("jsonify_component_param_description(ComponentManager.get('{}').get_component_params('{}', '{}'))", 1),
@@ -32,6 +33,10 @@ class MatlabBackend:
     def __init__(self, restart_daemon):
         self._restart_daemon = restart_daemon
         self.csb_path = None
+
+    @property
+    def is_long_generation(self):
+        return True
 
     def get_daemon_source_path(self):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -82,9 +87,9 @@ class MatlabBackend:
         return False
 
     def parse_response(self, response, nargout, is_json, has_error=False):
-        has_error = response.startswith("csb_error:")
+        has_error = response.startswith("csb_err:")
         if has_error:
-            raise Exception(response[len("csb_error:"):])
+            raise Exception(response[len("csb_err:"):])
         has_error = response.startswith("err:")
         if has_error:
             raise Exception(response[len("err:"):])
@@ -129,6 +134,9 @@ class MatlabBackend:
             if cmd is None:
                 raise Exception(f"Unknown command '{command}'")
             command, nargout = cmd
+            if command.count('{}') != len(args):
+                raise Exception(f"Command '{command}' expects {command.count('{}')} arguments,"
+                                f" but {len(args)} were given.")
             command = command.format(*args)
 
 

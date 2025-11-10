@@ -4,13 +4,13 @@ import importlib.util
 import numpy as np
 from types import FunctionType
 from qt.qt_utils import open_file_in_editor
-from csbenchlab.data_desc import COMPONENT_DATA_DESC
+from csbenchlab.data_desc import COMPONENT_DATA_DESC, get_component_relative_param_file_path
 import sys
 
 class ParameterHandler:
 
     def __init__(self, comp_path):
-        self.comp_path = comp_path
+        self.component_destination_path = comp_path
 
     def open_parameter_file(self, component):
         # open parameter file in default editor
@@ -43,7 +43,6 @@ class ParameterHandler:
         class_name = component['PluginName']
         if not path.endswith('.py'):
             path = f"{path}.py"
-        
         sys.path.append(str(Path(path).parent.parent))
         spec = importlib.util.spec_from_file_location(class_name, path)
         module = importlib.util.module_from_spec(spec)
@@ -62,14 +61,8 @@ class ParameterHandler:
         if path is not None and path.exists():
             os.remove(path)
 
-
-    @staticmethod
-    def get_relative_component_param_file_path(component):
-        file_name = component["Id"]
-        return Path(file_name) / 'params' / f"{file_name}.py"
-
     def get_component_param_file_path(self, component) -> Path:
-        full_file = Path(self.comp_path) / self.get_relative_component_param_file_path(component)
+        full_file = Path(self.component_destination_path) / component["Id"] / get_component_relative_param_file_path(component)
         return full_file
 
     def set_component_params(self, component, params):
@@ -90,7 +83,7 @@ class ParameterHandler:
         src = """
 from dataclasses import dataclass, field
 from typing import List, Dict, Any
-from csbenchlab.param_typing import *
+from csbenchlab.common_types import *
 import numpy as np
 
 # Parameter file for component with id {}

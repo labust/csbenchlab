@@ -1,1 +1,1 @@
-from csbenchlab.param_typing import *
+from csbenchlab.common_types import *

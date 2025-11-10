@@ -1,6 +1,6 @@
 import numpy as np
 from math import ceil
-from csbenchlab.param_typing import *
+from csbenchlab.common_types import *
 
 def generate_steps(scenario, dt, system_dims, steps, dim):
     t_sim = scenario['SimulationTime']

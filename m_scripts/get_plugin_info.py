@@ -3,7 +3,7 @@ file_name = sys.argv[0]
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(file_name))))
 
 from argparse import ArgumentParser
-from csbenchlab.registry import get_plugin_info
+from csbenchlab.registry import get_plugin_info_from_file
 
 if __name__ == "__main__":
 
@@ -18,9 +18,8 @@ if __name__ == "__main__":
     # Check if the plugin path is valid
     if not os.path.exists(plugin_path):
         raise ValueError(f"Plugin path '{plugin_path}' does not exist.")
-
     try:
-        plugin_info = get_plugin_info(plugin_path)
+        plugin_info = get_plugin_info_from_file(plugin_path)
     except ValueError as e:
         print(e)
 

@@ -151,10 +151,17 @@ class EnvironmentWidget(QWidget):
                 self.app.log(f"COMMAND: generate_control_environment('{self.app.env_path}', '{instance}', {ids_str})")
             def func():
                 self.backend.generate_control_environment(self.app.env_path, instance, ids_str)
-            self.t = WorkerThread(self.app, func)
-            self.t.finished.connect(finish)
-            self.t.start()
-            self.app.setEnabled(False)
+            if self.backend.is_long_generation:
+                self.t = WorkerThread(self.app, func)
+                self.t.finished.connect(finish)
+                self.t.start()
+                self.app.setEnabled(False)
+            else:
+                # try:
+                    func()
+                    finish(None, None)
+                # except Exception as e:
+                #     finish(None, e)
 
         if not GenOptionsWidget.has_gen_options(self.app.env_path):
             self.app.set_widget(GenOptionsWidget(self, on_save_callback=generate))

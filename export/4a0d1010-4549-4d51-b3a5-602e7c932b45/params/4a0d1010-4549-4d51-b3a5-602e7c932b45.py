@@ -1,7 +1,7 @@
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any
-from csbenchlab.param_typing import LoadFromFile, PyFunctionHandle, MatFunctionHandle
+from csbenchlab.common_types import LoadFromFile, PyFunctionHandle, MatFunctionHandle
 import numpy as np
 
 @dataclass

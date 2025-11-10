@@ -1,8 +1,28 @@
 import os
+from pathlib import Path
 
 LIB_PATH_OVERRIDE = None
+CSB_PATH_OVERRIDE = None
+
+_BACKEND = None
+def get_backend():
+    global _BACKEND
+    if _BACKEND is None:
+        from backend.python_backend import PythonBackend
+        _BACKEND = PythonBackend()
+    return _BACKEND
+
+csb_path = os.getenv('CSB_PATH', None)
+if csb_path is not None:
+    CSB_PATH_OVERRIDE = csb_path
+
+lib_path = os.getenv('CSB_LIB_PATH', None)
+if lib_path is not None:
+    LIB_PATH_OVERRIDE = lib_path
 
 def get_appdata_dir():
+    if CSB_PATH_OVERRIDE is not None:
+        return CSB_PATH_OVERRIDE
     if os.name == 'nt':
         appdata = os.getenv('APPDATA')
         if appdata is None:
@@ -14,11 +34,7 @@ def get_appdata_dir():
 
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
-    path = '/home/luka/matlab/csbenchlab'  # Debug override
     return path
-
-def get_app_root():
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def get_app_registry_path():
     if LIB_PATH_OVERRIDE is not None:
