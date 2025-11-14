@@ -23,7 +23,7 @@
             "console": "integratedTerminal",
             "args": [
                 "-backend",
-                "matlab", "--daemon-restart",
+                "matlab", //"--daemon-restart",
                 "--debug"
             ],
             "justMyCode": false
@@ -58,6 +58,18 @@
                 "--component-info-path",
                 "/tmp/tp3074f5d2_c318_41c0_ad59_13b2b8c70b33.json",
                 "--py-as-py"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "Python Debugger: Get plugin info",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/m_scripts/get_plugin_info.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--plugin_path",
+                "/home/luka/matlab/csbenchlab/registry/data_driven_lib_new/src/DeePCtest.py",
             ],
             "justMyCode": false
         },
@@ -100,9 +112,9 @@
             },
             "args": [
                 "--env-path",
-                "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc",
+                "/home/luka/matlab/csbenchlab_gym/envs/marine_otter_velocity",
                 "--name",
-                "DeePC_acados",
+                "DeePCtest",
                 "--mux-inputs",
                 "1",
                 "--mux-outputs",

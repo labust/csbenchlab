@@ -7,21 +7,19 @@ def parse_plugin_type(plugin_class):
     Args:
         plugin_class (type): The class of the plugin to parse.
     """
-    if any([base for base in plugin_class.__bases__ \
+    if any([base for base in plugin_class.__mro__ \
             if str(base) ==  "<class 'csbenchlab.plugin.DynSystem.DynSystem'>"]):
         return 'sys'
-    if any([base for base in plugin_class.__bases__ \
+    if any([base for base in plugin_class.__mro__ \
             if str(base) ==  "<class 'csbenchlab.plugin.Controller.Controller'>"]):
         return 'ctl'
-    if any([base for base in plugin_class.__bases__ \
+    if any([base for base in plugin_class.__mro__ \
             if str(base) ==  "<class 'csbenchlab.plugin.Estimator.Estimator'>"]):
         return 'est'
-    if any([base for base in plugin_class.__bases__ \
+    if any([base for base in plugin_class.__mro__ \
             if str(base) ==  "<class 'csbenchlab.plugin.DisturbanceGenerator.DisturbanceGenerator'>"]):
         return 'dist'
     return ''
-
-
 
 def import_module_from_path(module_path: str):
     """

@@ -3,6 +3,20 @@ from pathlib import Path
 from csbenchlab.plugin_helpers import parse_plugin_type, get_plugin_class
 
 
+def is_casadi_component(plugin_class: type) -> bool:
+    """
+    Checks if the given plugin class is a Casadi-based component.
+
+    Args:
+        plugin_class (type): The class of the plugin to check.
+    Returns:
+        bool: True if the plugin is a Casadi-based component, False otherwise.
+    """
+
+    return hasattr(plugin_class, 'casadi_plugin__') \
+        and getattr(plugin_class, 'casadi_plugin__') is True
+
+
 def get_plugin_info_from_file(plugin_path: str) -> dict:
     """
     Retrieves information about a plugin by its name.
@@ -32,6 +46,7 @@ def get_plugin_info_from_file(plugin_path: str) -> dict:
         'HasParameters': hasattr(plugin_class, 'param_description') and plugin_class.param_description is not None,
         'Description': getattr(plugin_class, 'description', 'No description provided.'),
         'Parameters': getattr(plugin_class, 'param_description', None),
+        'IsCasadi': is_casadi_component(plugin_class)
     }
 
     # check if plugin has abstract class 'Plugin' implemented

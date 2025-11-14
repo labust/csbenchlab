@@ -43,7 +43,7 @@ class Controller(PluginBase):
 
     @classmethod
     @abstractmethod
-    def create_data_model(cls):
+    def create_data_model(cls, params, mux):
         """Create and return a data model for the controller."""
         return None
 
@@ -69,7 +69,7 @@ class Controller(PluginBase):
 
     def configure(self, *args, **kwargs):
         self._is_configured = True
-        self.on_configure()
+        return self.on_configure()
 
     def data_as_json(self):
         return json.dumps(self.data.__dict__)
@@ -79,4 +79,4 @@ class Controller(PluginBase):
         return result
 
     def reset(self):
-        pass
+        return self.on_reset()

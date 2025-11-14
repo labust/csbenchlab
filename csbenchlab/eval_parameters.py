@@ -81,7 +81,7 @@ def eval_plugin_params_from_file(param_file, param_desc, plugin_class=None, plug
         setattr(result_params, info['Name'], value)
     return result_params
 
-def eval_plugin_params_(env_path, component):
+def eval_plugin_params(env_path, component):
     path = Path(env_path) / get_component_param_file_path(component)
     if not path.exists():
         return None
@@ -101,5 +101,5 @@ def eval_environment_params(env_path, env_info=None):
         if p_type == "slx" or p_type == "mat":
             warnings.warn(f"Skipping parameter evaluation for component '{comp['Id']}' with unsupported type '{p_type}'.")
             continue
-        ret[comp["Id"]] = eval_plugin_params_(env_path, comp)
+        ret[comp["Id"]] = eval_plugin_params(env_path, comp)
     return ret
