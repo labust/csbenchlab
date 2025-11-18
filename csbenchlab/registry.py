@@ -43,10 +43,13 @@ def get_plugin_info_from_file(plugin_path: str) -> dict:
     plugin_info = {
         'Name': plugin_name,
         'T': parse_plugin_type(plugin_class),
-        'HasParameters': hasattr(plugin_class, 'param_description') and plugin_class.param_description is not None,
+        'HasParameters': hasattr(plugin_class, 'param_description') and \
+            plugin_class.param_description is not None and \
+            len(plugin_class.param_description) > 0,
         'Description': getattr(plugin_class, 'description', 'No description provided.'),
-        'Parameters': getattr(plugin_class, 'param_description', None),
-        'IsCasadi': is_casadi_component(plugin_class)
+        'IsCasadi': is_casadi_component(plugin_class),
+        "ComponentPath": plugin_path,
+        "Type": "py"
     }
 
     # check if plugin has abstract class 'Plugin' implemented

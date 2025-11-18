@@ -196,10 +196,15 @@ class CSBPluginManager(QMainWindow):
         full_component_path = file_path
         if file_path.endswith('.slx'):
             full_component_path = f"{file_path}:{block_path}"
-        self.log(f"Registering component from '{file_path}' to library '{lib}'. This may take a few moments...")
+
+        if not self.backend.is_supported_component_file(file_path):
+            self.log(f"Unsupported component file type: '{file_path}'. Only '*.py' files are supported with python backend.")
+            return
+
         def run():
             self.backend.register_component_from_file(full_component_path, lib)
 
+        self.log(f"Registering component from '{file_path}' to library '{lib}'. This may take a few moments...")
         def on_finish(result, error):
             if error is not None:
                 self.log(f"Failed to register component '{full_component_path}' in library '{lib}': {error}")
@@ -335,6 +340,9 @@ class CSBPluginManager(QMainWindow):
 
 
     def fill_tab(self, index):
+
+        if self.libraryListWidget.count() == 0:
+            return
 
         lib = self.get_active_library()
         if lib is None:

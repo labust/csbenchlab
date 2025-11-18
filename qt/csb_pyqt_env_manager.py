@@ -512,7 +512,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.backend == 'matlab':
-        from ..matlab.matlab_backend import MatlabBackend
+        from ..csb_matlab.matlab_backend import MatlabBackend
         backend = MatlabBackend(restart_daemon=args.daemon_restart)
         backend.start()
         print("Using matlab backend with csb path:", backend.csb_path)

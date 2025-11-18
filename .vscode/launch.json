@@ -21,11 +21,8 @@
             },
             "program": "${workspaceFolder}/csbenchlab.py",
             "console": "integratedTerminal",
-            "args": [
-                "-backend",
-                "matlab", //"--daemon-restart",
-                "--debug"
-            ],
+            "args": [ //"--daemon-restart",
+                     "--debug"],
             "justMyCode": false
         },
         {

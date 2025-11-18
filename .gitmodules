@@ -1,0 +1,3 @@
+[submodule "csbenchlab_mat"]
+	path = csbenchlab_mat
+	url = git@github.com:labust/csbenchlab_mat.git

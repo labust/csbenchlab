@@ -120,7 +120,6 @@ def start_daemon():
         conn.close()
 
 def cleanup():
-    print("asdf", flush=True)
     if os.path.exists(SOCKET_PATH):
         os.remove(SOCKET_PATH)
 

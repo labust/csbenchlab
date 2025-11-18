@@ -5,8 +5,9 @@ import time
 from multiprocessing import Process
 import subprocess
 import sys
-from matlab.matlab_daemon import start_daemon
+from csb_matlab.matlab_daemon import start_daemon
 from pathlib import Path
+from csbenchlab.csb_app_setup import get_appdata_dir
 
 SOCKET_PATH = '/tmp/csbenchlab_matlab_daemon.sock'
 
@@ -33,6 +34,29 @@ class MatlabBackend:
     def __init__(self, restart_daemon):
         self._restart_daemon = restart_daemon
         self.csb_path = None
+
+        if not self.is_initialized():
+            self.initialize()
+
+
+    def is_initialized(self):
+        appdata = get_appdata_dir()
+        return os.path.exists(os.path.join(appdata, 'init'))
+
+
+    def initialize(self):
+        appdata = get_appdata_dir()
+        os.makedirs(appdata, exist_ok=True)
+        with open(os.path.join(appdata, 'init'), 'w') as f:
+            f.write('initialized')
+
+    @staticmethod
+    def is_available():
+        try:
+            import matlab.engine
+            return True
+        except ImportError:
+            return False
 
     @property
     def is_long_generation(self):
