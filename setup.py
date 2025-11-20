@@ -5,9 +5,7 @@ setup(
     name='csbenchlab',
     version='0.1.0',
     packages=find_packages(),
-    include_dirs=[
-        "qt", 'csb_matlab', 'backend'
-    ],
+    include_dirs=['csbenchlab', 'm_scripts'],
     install_requires=[
         'numpy',
         'scipy',

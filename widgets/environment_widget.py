@@ -1,3 +1,4 @@
+import os
 from PyQt6.QtWidgets import *
 from PyQt6 import uic, QtCore
 
@@ -21,7 +22,8 @@ class EnvironmentWidget(QWidget):
 
     def __init__(self, data, parent=None):
         QWidget.__init__(self, parent=parent)
-        uic.loadUi('ui/environment.ui', self)
+        ui_path = parent.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(ui_path, 'environment.ui'), self)
         self.app = parent
         self.backend = self.app.backend
         self.env_data = parent.env_data

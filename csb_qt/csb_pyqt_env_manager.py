@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import *
 from PyQt6 import uic
-import sys
+import sys, os
 
 from csbenchlab.environment_data_manager import EnvironmentDataManager
 from uuid import uuid4
@@ -30,7 +30,8 @@ def env_has_to_be_changed(item):
 class CSBEnvGui(QMainWindow):
     def __init__(self, env_path, backend, parent=None, readonly=False, debug=False):
         QMainWindow.__init__(self, parent=parent)
-        uic.loadUi('ui/env_manager.ui', self)
+        self.ui_path = parent.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(self.ui_path, 'env_manager.ui'), self)
         self.backend = backend
         self.env_path = env_path
         self.env_manager = EnvironmentDataManager(env_path)

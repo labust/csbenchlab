@@ -1,10 +1,12 @@
+import os
 from PyQt6.QtWidgets import *
 from PyQt6 import uic, QtCore
 
 class PluginSelectorWidget(QMainWindow):
     def __init__(self, plugin_type, on_select, parent=None):
         QMainWindow.__init__(self, parent=parent)
-        uic.loadUi('ui/tree_selector.ui', self)
+        ui_path = parent.app.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(ui_path, 'tree_selector.ui'), self)
         self.app = parent.app
         self.env_data = self.app.env_data
         self.on_select = on_select

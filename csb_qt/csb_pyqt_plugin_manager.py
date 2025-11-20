@@ -15,7 +15,9 @@ plugin_types = {
 class CSBPluginManager(QMainWindow):
     def __init__(self, backend, parent=None):
         QMainWindow.__init__(self, parent=parent)
-        uic.loadUi('ui/plugin_manager.ui', self)
+
+        self.ui_path = parent.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(self.ui_path, 'plugin_manager.ui'), self)
         self.backend = backend
         self.load_plugins()
         self.init()
@@ -87,6 +89,9 @@ class CSBPluginManager(QMainWindow):
         self.log(f"Registering library from '{path}'. This may take a few moments...")
 
         def on_finish(result, error):
+            if error is not None:
+                self.log(f"Failed to register library from '{path}': {error}")
+                return
             self.log("Library registered.")
             self.load_plugins()
 
@@ -146,6 +151,9 @@ class CSBPluginManager(QMainWindow):
         self.log(f"Refreshing library '{lib}'. This may take a few moments...")
 
         def on_finish(result, error):
+            if error is not None:
+                self.log(f"Failed to refresh library '{lib}': {error}")
+                return
             self.log(f"Library '{lib}' refreshed.")
             self.load_plugins()
             self.fill_tab(self.tabWidget.currentIndex())

@@ -10,9 +10,10 @@ from csbenchlab.csb_utils import load_app_config, save_app_config, instantiate_b
 
 
 class CSBenchlabGUI(QMainWindow):
-    def __init__(self, debug=False, daemon_restart=False, parent=None):
+    def __init__(self, ui_path, debug=False, daemon_restart=False, parent=None):
         QMainWindow.__init__(self, parent=parent)
-        uic.loadUi('ui/main.ui', self)
+        self.ui_path = ui_path
+        uic.loadUi(os.path.join(self.ui_path, 'main.ui'), self)
         self.pluginManagerBtn.clicked.connect(self.open_plugin_manager)
         self.openEnvironmentBtn.clicked.connect(self.open_environment)
         self.newEnvironmentBtn.clicked.connect(self.new_environment)

@@ -1,3 +1,4 @@
+import os
 from PyQt6.QtWidgets import *
 from PyQt6 import uic, QtCore
 from pathlib import Path
@@ -25,7 +26,8 @@ class GenOptionsWidget(QWidget):
 
     def __init__(self, parent=None, on_save_callback=None):
         QWidget.__init__(self, parent=parent)
-        uic.loadUi('ui/gen_options.ui', self)
+        ui_path = parent.app.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(ui_path, 'gen_options.ui'), self)
         self.app = parent.app
         self.env_path = self.app.env_path
         self.env_data = parent.env_data

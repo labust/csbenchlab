@@ -1,3 +1,4 @@
+import os
 from PyQt6.QtWidgets import *
 from PyQt6 import uic, QtCore
 from .plugin_selector_widget import PluginSelectorWidget
@@ -10,7 +11,8 @@ class SystemWidget(QWidget):
 
     def __init__(self, index, data, parent=None):
         QWidget.__init__(self, parent=parent)
-        uic.loadUi('ui/system.ui', self)
+        ui_path = parent.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(ui_path, 'system.ui'), self)
         self.index = index
         self.app = parent
         self.data = data

@@ -1,3 +1,4 @@
+import os
 from PyQt6.QtWidgets import *
 from PyQt6 import uic
 from .plugin_selector_widget import PluginSelectorWidget
@@ -10,7 +11,8 @@ class DisturbanceWidget(QWidget):
 
     def __init__(self, data, parent=None):
         QWidget.__init__(self, parent=parent)
-        uic.loadUi('ui/disturbance.ui', self)
+        ui_path = parent.app.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(ui_path, 'disturbance.ui'), self)
         self.app = parent.app
         self.data = data
         self.p = parent

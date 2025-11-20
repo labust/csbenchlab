@@ -1,3 +1,4 @@
+import os
 from PyQt6.QtWidgets import *
 from PyQt6 import uic
 from csbenchlab.env_model import Scenario
@@ -12,7 +13,8 @@ class ScenarioWidget(QWidget):
 
     def __init__(self, index, data, parent=None):
         QWidget.__init__(self, parent=parent)
-        uic.loadUi('ui/scenario.ui', self)
+        ui_path = parent.ui_path if parent is not None else ''
+        uic.loadUi(os.path.join(ui_path, 'scenario.ui'), self)
         self.index = index
         self.app = parent
         self.data = data

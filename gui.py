@@ -1,6 +1,7 @@
 
 from csb_qt.csb_pyqt import CSBenchlabGUI
 from PyQt6.QtWidgets import QApplication
+import os
 
 
 def main():
@@ -13,7 +14,10 @@ def main():
     parser.add_argument('--debug', action="store_true", default=False, help="Enable debug mode.")
     args = parser.parse_args()
 
-    w = CSBenchlabGUI(debug=args.debug, daemon_restart=args.daemon_restart)
+    root_path = os.path.dirname(os.path.abspath(__file__))
+    ui_path = os.path.join(root_path, 'ui')
+
+    w = CSBenchlabGUI(ui_path, debug=args.debug, daemon_restart=args.daemon_restart)
     w.show()
     sys.exit(app.exec())
 
