@@ -6,10 +6,10 @@ from .controller_widget import ControllerWidget
 from .scenario_widget import ScenarioWidget
 from .metric_widget import MetricWidget
 from .gen_options_widget import GenOptionsWidget
-from qt.qt_utils import clear_form_layout
+from csb_qt.qt_utils import clear_form_layout
 
 from csbenchlab.env_model import Metadata
-from qt.worker_thread import WorkerThread
+from csb_qt.worker_thread import WorkerThread
 from csbenchlab.check_environment import check_environment
 
 

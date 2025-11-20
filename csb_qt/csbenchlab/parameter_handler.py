@@ -3,7 +3,7 @@ import os
 import importlib.util
 import numpy as np
 from types import FunctionType
-from qt.qt_utils import open_file_in_editor
+from csb_qt.qt_utils import open_file_in_editor
 from csbenchlab.data_desc import COMPONENT_DATA_DESC, get_component_relative_param_file_path
 import sys
 

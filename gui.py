@@ -1,12 +1,9 @@
 
-from qt.csb_pyqt import CSBenchlabGUI
+from csb_qt.csb_pyqt import CSBenchlabGUI
 from PyQt6.QtWidgets import QApplication
-import os
-from csbenchlab.source_libraries import source_libraries
-from csbenchlab.csb_app_setup import get_appdata_dir
 
 
-if __name__ == '__main__':
+def main():
     import sys, argparse
 
     app = QApplication(sys.argv)
@@ -19,3 +16,6 @@ if __name__ == '__main__':
     w = CSBenchlabGUI(debug=args.debug, daemon_restart=args.daemon_restart)
     w.show()
     sys.exit(app.exec())
+
+if __name__ == '__main__':
+    main()

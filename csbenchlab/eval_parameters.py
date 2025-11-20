@@ -10,7 +10,6 @@ __cache_results = {}
 def clear_cache_():
     __cache_results.clear()
 
-
 def handle_callable_value_(value, info, params, plugin_class=None):
     if value is None:
         if info["DefaultValue"] == "csb_py_fh":

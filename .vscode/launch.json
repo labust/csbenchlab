@@ -12,6 +12,21 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "CSB",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/csb.py",
+            "console": "integratedTerminal",
+            "args": [
+                // "login", "luka", "000000",
+                // "env", "push", "marine_otter_velocity", "--public", "--override"
+                // "env", "pull", "marine_otter_velocity"
+                // "env", "marine_otter_velocity", "make", "public"
+                "lib", "push", "marine_lib", "--public"
+            ],
+            "justMyCode": false
+        },
+        {
             "name": "Python Debugger: Main",
             "type": "debugpy",
             "request": "launch",
@@ -19,7 +34,7 @@
                 "CSB_M_PATH": "/home/luka/matlab/csbenchlab",
                 "CSB_LIB_PATH": "/home/luka/matlab/csbenchlab/registry"
             },
-            "program": "${workspaceFolder}/csbenchlab.py",
+            "program": "${workspaceFolder}/gui.py",
             "console": "integratedTerminal",
             "args": [ //"--daemon-restart",
                      "--debug"],

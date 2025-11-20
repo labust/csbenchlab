@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from qt.qt_utils import open_file_in_editor
+from csb_qt.qt_utils import open_file_in_editor
 
 class ComponentFileHandler:
 

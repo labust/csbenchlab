@@ -29,6 +29,8 @@ class MatlabBackend:
         'get_plugin_info_from_lib': ("get_plugin_info_from_lib('{}', '{}')", 1),
         "generate_control_environment": ("generate_control_environment('{}', '{}', {})", 0),
         "create_environment": ("create_environment('{}', '{}')", 0),
+        'setup_environment': ("setup_environment('{}')", 0),
+        'setup_library': ("setup_library('{}')", 0),
     }
 
     def __init__(self, restart_daemon):

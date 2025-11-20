@@ -51,7 +51,7 @@ def get_library_path(cls, lib_name):
                 s = json5.load(f)
                 lib = s['Path']
                 return lib
-    raise FileNotFoundError(f"Library '{lib_name}' not found")
+    return None
 
 
 def is_supported_component_file(cls, component_file):
@@ -337,7 +337,8 @@ def unregister_component(cls, component_name, lib_name):
     with open(plugins_file, 'w') as f:
         json.dump(plugins_data, f, indent=4)
 
-
+def setup_library(cls, lib_name_or_path):
+    pass
 
 plugins_template__ = """
 {
@@ -363,5 +364,6 @@ __all__ = ['get_library_path',
            'refresh_component_library',
            'register_component_from_file',
            'register_component',
-           'unregister_component'
+           'unregister_component',
+           'setup_library'
 ]

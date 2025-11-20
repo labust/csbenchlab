@@ -1,7 +1,7 @@
 from pathlib import Path
-from qt.csbenchlab.file_handler import ComponentFileHandler
+from csb_qt.csbenchlab.file_handler import ComponentFileHandler
 from csbenchlab.data_desc import DataDescBase, COMPONENT_DATA_DESC
-from qt.qt_utils import open_file_in_editor
+from csb_qt.qt_utils import open_file_in_editor
 import shutil, os
 
 class ComponentFileHandler:

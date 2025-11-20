@@ -4,8 +4,8 @@ from types import SimpleNamespace
 import shutil, os
 from csbenchlab.data_desc import COMPONENT_DATA_DESC, get_component_context_path
 
-from qt.csbenchlab.parameter_handler import ParameterHandler
-from qt.csbenchlab.component_file_handler import ComponentFileHandler
+from csb_qt.csbenchlab.parameter_handler import ParameterHandler
+from csb_qt.csbenchlab.component_file_handler import ComponentFileHandler
 from copy import deepcopy
 
 

@@ -1,6 +1,9 @@
 import json, warnings
 from csbenchlab.environment_data_manager import EnvironmentDataManager
 from csbenchlab.eval_parameters import eval_environment_params
+import os
+from pathlib import Path
+from csbenchlab.scenario_templates.control_environment import ControlEnvironment
 
 def generate_control_environment(cls, env_path, system_instance:str=None, controller_ids:str=None):
 
@@ -32,9 +35,40 @@ def generate_control_environment(cls, env_path, system_instance:str=None, contro
     name = data.metadata.get("Name", "GeneratedEnvironment")
     env_params = eval_environment_params(env_path, data)
 
+    env = ControlEnvironment(name)
+    env.generate({
+        "system": data.systems[0],
+        "controllers": data.controllers
+    })
 
 
 
+def is_valid_environment_path(cls, path: str) -> bool:
+    """
+    Checks if the given path is a valid control environment.
+
+    Args:
+        path (str): The path to check.
+    Returns:
+        bool: True if the path is a valid control environment, False otherwise.
+    """
+    name = Path(path).stem
+    return os.path.isdir(path) and \
+        os.path.exists(os.path.join(path, f"{name}.cse"))
 
 
-__all__ = ['generate_control_environment']
+
+def setup_environment(cls, env_path: str):
+    """
+    Sets up the control environment located at the given path.
+
+    Args:
+        env_path (str): The path to the control environment.
+    """
+
+    pass
+
+
+__all__ = ['generate_control_environment',
+           'is_valid_environment_path',
+           'setup_environment']

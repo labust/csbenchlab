@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import os, shutil
 from pathlib import Path
-from qt.qt_utils import open_file_in_editor
+from csb_qt.qt_utils import open_file_in_editor
 
 
 class DataDescBase(ABC):

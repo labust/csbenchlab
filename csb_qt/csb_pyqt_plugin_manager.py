@@ -3,7 +3,7 @@ from PyQt6 import uic, QtCore
 import sys, os
 import subprocess
 from pathlib import Path
-from qt.worker_thread import WorkerThread
+from csb_qt.worker_thread import WorkerThread
 
 plugin_types = {
     'ctl': 'Controllers',
