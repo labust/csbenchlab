@@ -169,7 +169,11 @@ class MatlabBackend:
             if nargout == 'dict':
                 command = """
                 temp = {command};
-                r.keys = temp.keys();
+                if length(temp.keys()) == 1
+                    r.keys = {{temp.keys()}};
+                else
+                    r.keys = temp.keys();
+                end
                 r.values = temp.values();
                 temp=jsonencode(r);
                 """.format(command=command)

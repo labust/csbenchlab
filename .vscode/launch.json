@@ -30,10 +30,6 @@
             "name": "Python Debugger: Main",
             "type": "debugpy",
             "request": "launch",
-            "env": {
-                "CSB_M_PATH": "/home/luka/matlab/csbenchlab",
-                "CSB_LIB_PATH": "/home/luka/matlab/csbenchlab/registry"
-            },
             "program": "${workspaceFolder}/gui.py",
             "console": "integratedTerminal",
             "args": [ //"--daemon-restart",
@@ -44,16 +40,8 @@
             "name": "Python Debugger: Daemon",
             "type": "debugpy",
             "request": "launch",
-            "env": {
-                "CSB_M_PATH": "/home/luka/matlab/csbenchlab"
-            },
-            "program": "${workspaceFolder}/matlab/matlab_daemon.py",
+            "program": "${workspaceFolder}/csb_matlab/matlab_daemon.py",
             "console": "integratedTerminal",
-            "args": [
-                "-backend",
-                "matlab",
-                "/home/luka/fer/csbenchlab_py/demo_env"
-            ],
             "justMyCode": false
         },
         {

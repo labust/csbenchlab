@@ -19,14 +19,18 @@ class CSBenchlabGUI(QMainWindow):
         self.removeEnvironmentBtn.clicked.connect(self.remove_environment)
         self.backendCb.currentTextChanged.connect(self.set_backend)
         self.debug = debug
+        self._fill = False
         self.daemon_restart = daemon_restart
         self.init()
 
     def init(self):
         self.cfg = load_app_config()
         self.setWindowTitle("CSBenchlab GUI")
+        self._fill = True
         self.backendCb.addItems(['python', 'matlab'])
         self.backendCb.setCurrentText(self.cfg.get('active_backend', 'python'))
+        self._fill = False
+        self.set_backend(self.backendCb.currentText())
         self.resize(300, 200)
         # on double click, open environment
         self.envListWidget.itemDoubleClicked.connect(self.on_env_double_clicked)
@@ -96,6 +100,8 @@ class CSBenchlabGUI(QMainWindow):
             self.envListWidget.addItem(data.metadata.get('Name', Path(path).name.replace('.cse', '')))
 
     def set_backend(self, backend_name):
+        if self._fill:
+            return
         (self.backend, msg) = instantiate_backend(backend_name, self.daemon_restart)
         if self.backend is None:
             QMessageBox.critical(self, "Error", msg)

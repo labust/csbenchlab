@@ -9,17 +9,16 @@ def get_csb_path_from_matlab(eng):
         eng.eval("path = which('csbenchlab');", nargout=0)
         path = eng.workspace['path']
         # try get path with which
-        if path is not None and path != "":
+        if path is None or path == "":
             if not check_installed():
                 raise Exception("csbenchlab is not installed in MATLAB. " \
                 "Please install it from MATLAB Add-On Explorer.")
-
             else:
                 raise Exception("csbenchlab is installed but could not find path. " \
                 "Try running the 'csbenchlab' application from directly from matlab first to " \
                 "initialize the add-on properly. " \
                 "Addidionally, please make sure it is added to MATLAB path.")
-    return path
+    return os.path.dirname(path)
 
 def get_csb_path_from_env():
     path = os.getenv("CSB_M_PATH", None)
@@ -65,9 +64,15 @@ def start_daemon():
     eng = matlab.engine.start_matlab()
     eng.eval(f"matlab.engine.shareEngine;", nargout=0)
 
+    # check csbenchlab_mat folder relative to this file
+
 
     csb_path = get_csb_path_from_env()
     if csb_path is None:
+        csb_py_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        csb_path = os.path.join(csb_py_path, 'csbenchlab_mat')
+        if os.path.exists(os.path.join(csb_path, "csbenchlab.m")):
+            eng.eval(f"addpath('{csb_path}');", nargout=0)
         # try to find csb path from matlab
         csb_path = get_csb_path_from_matlab(eng)
     if csb_path is None:

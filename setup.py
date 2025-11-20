@@ -6,7 +6,7 @@ setup(
     version='0.1.0',
     packages=find_packages(),
     include_dirs=[
-        "qt", 'csbenchlab', 'cs_matlab', 'backend'
+        "qt", 'csb_matlab', 'backend'
     ],
     install_requires=[
         'numpy',

@@ -121,7 +121,7 @@ def list_component_libraries(cls, ignore_csbenchlab=True):
             if cls.is_valid_component_library(full_path):
                 info = cls.get_library_info(full_path, only_registered=True)
                 libs.append({
-                    "Name": info['Name'],
+                    "Name": info['Library'],
                     "Type": "install",
                     "Path": full_path,
                     "Version": info['Version']
@@ -172,14 +172,12 @@ def register_component_library(cls, path, link_register=False, ask_dialog=True):
         return str(lib_path)
 
 def get_or_create_component_library(cls, lib_name, close_after_creation=False):
-    try:
-        path = cls.get_library_path(lib_name)  # Define or import accordingly
+    path = cls.get_library_path(lib_name)  # Define or import accordingly
+    if path is not None:
         return {
             'path': path,
             'name': lib_name
         }
-    except Exception:
-        pass
 
     # create new library
     path = os.path.join(get_app_registry_path(), lib_name)
@@ -195,7 +193,7 @@ def get_or_create_component_library(cls, lib_name, close_after_creation=False):
     os.makedirs(os.path.join(path, lib_name), exist_ok=True)
 
     lib_meta = {
-        'Name': lib_name,
+        'Library': lib_name,
         'Id': str(uuid4()),
         'Version': "0.0.1",
         'Dependencies': [],
