@@ -1,0 +1,6 @@
+{
+    "Library": "csbenchlab",
+    "Version": "0.0.1",
+    "Description": "An official CsBenchLab base component library",
+    "Authors": ["Luka Mandic"],
+}

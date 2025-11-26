@@ -64,6 +64,10 @@ class MatlabBackend:
     def is_long_generation(self):
         return True
 
+    @property
+    def is_long_library_management(self):
+        return True
+
     def get_daemon_source_path(self):
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         client.connect(SOCKET_PATH)

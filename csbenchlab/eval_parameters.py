@@ -76,7 +76,7 @@ def eval_plugin_params_from_file(param_file, param_desc, plugin_class=None, plug
             value = getattr(params_cls, info['Name'])
             value = handle_callable_value_(value, info, result_params, plugin_class)
         else:
-            raise ValueError(f"Parameter '{info['Name']}' not found in 'ComponentParams' class.")
+            raise ValueError(f"Parameter '{info['Name']}' not found in 'ComponentParams' class.\n  Param file: '{param_file}'")
         setattr(result_params, info['Name'], value)
     return result_params
 

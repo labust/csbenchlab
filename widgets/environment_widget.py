@@ -7,7 +7,7 @@ from .controller_widget import ControllerWidget
 from .scenario_widget import ScenarioWidget
 from .metric_widget import MetricWidget
 from .gen_options_widget import GenOptionsWidget
-from csb_qt.qt_utils import clear_form_layout
+from csb_qt.qt_utils import clear_form_layout, do_in_thread
 
 from csbenchlab.env_model import Metadata
 from csb_qt.worker_thread import WorkerThread
@@ -138,6 +138,7 @@ class EnvironmentWidget(QWidget):
             if error is not None:
                 self.app.log("Environment generation failed.")
                 self.app.log(str(error))
+                # rethrow error
                 raise Exception(error)
             else:
                 self.app.log("Environment generation completed successfully.")
@@ -153,17 +154,15 @@ class EnvironmentWidget(QWidget):
                 self.app.log(f"COMMAND: generate_control_environment('{self.app.env_path}', '{instance}', {ids_str})")
             def func():
                 self.backend.generate_control_environment(self.app.env_path, instance, ids_str)
+
             if self.backend.is_long_generation:
-                self.t = WorkerThread(self.app, func)
-                self.t.finished.connect(finish)
-                self.t.start()
-                self.app.setEnabled(False)
+                do_in_thread(self, func, finish)
             else:
                 # try:
                     func()
                     finish(None, None)
                 # except Exception as e:
-                #     finish(None, e)
+                    # finish(None, e)
 
         if not GenOptionsWidget.has_gen_options(self.app.env_path):
             self.app.set_widget(GenOptionsWidget(self, on_save_callback=generate))

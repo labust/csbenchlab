@@ -1,6 +1,7 @@
 import json, os
 from csbenchlab.csb_app_setup import get_appdata_dir
 
+
 def load_app_config():
     path = os.path.join(get_appdata_dir(), 'app_config.json')
     cfg = {
@@ -20,7 +21,8 @@ def instantiate_backend(backend_name, restart_daemon=False):
     if backend_name == 'matlab':
         from csb_matlab.matlab_backend import MatlabBackend
         if not MatlabBackend.is_available():
-            return (None, "Matlab Engine for Python is not available or not configured properly.")
+            return (None, "Matlab Engine for Python is not available or not configured properly." +
+            "Ensure that Matlab is installed and that python package 'matlabengine' is installed.")
         backend = MatlabBackend(restart_daemon=restart_daemon)
         backend.start()
     elif backend_name == 'python':

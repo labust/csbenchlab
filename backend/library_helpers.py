@@ -25,6 +25,7 @@ def get_available_plugins(cls):
             with open(manifest_file, 'r') as f:
                 data = json5.load(f)
                 plugins[data["Library"]] = data["Registry"]
+                plugins[data["Library"]]["LibVersion"] = data["Version"]
     return plugins
 
 
@@ -65,8 +66,11 @@ def get_plugin_info_from_file(cls, component_file):
     return reg_plugins.get_plugin_info_from_file(component_file)
 
 
+def get_supported_component_types(cls):
+    return ['ctl', 'sys', 'est', 'dist']
+
 def get_plugin_info(cls, lib_name_or_path, component_name):
-    if os.path.isdir(lib_name_or_path):
+    if cls.is_valid_component_library(lib_name_or_path):
         lib_path = lib_name_or_path
     else:
         lib_path = cls.get_library_path(lib_name_or_path)
@@ -144,7 +148,34 @@ def refresh_component_library(cls, lib_name):
     path = cls.get_library_path(lib_name)
     if not cls.is_valid_component_library(path):
         raise ValueError(f"Library '{lib_name}' is not a valid library")
-    raise NotImplementedError("Function refresh_component_library is not yet implemented")
+
+    with open(os.path.join(path, 'package.json'), 'r') as f:
+        info = json5.load(f)
+    with open(os.path.join(path, 'plugins.json'), 'r') as f:
+        plugins = json5.load(f)
+
+    manifest = {
+        'Library': info['Library'],
+        'Registry': {},
+        'Version': info['Version']
+    }
+
+    for plugin in plugins.get('Plugins', []):
+        comp_path = os.path.join(path, plugin['Path'])
+        if not os.path.isfile(comp_path):
+            warnings.warn(f"Component file '{comp_path}' not found. Skipping.")
+            continue
+        if not cls.is_supported_component_file(comp_path):
+            warnings.warn(f"Component file '{comp_path}' is not a supported component file. Skipping.")
+            continue
+        comp_info = cls.get_plugin_info_from_file(comp_path)
+        comp_type = comp_info.get('T', 'unknown')
+        if comp_type not in manifest['Registry']:
+            manifest['Registry'][comp_type] = []
+        manifest['Registry'][comp_type].append(comp_info)
+    manifest_file = os.path.join(path, 'autogen', 'manifest.json')
+    with open(manifest_file, 'w') as f:
+        json.dump(manifest, f, indent=4)
 
 def register_component_library(cls, path, link_register=False, ask_dialog=True):
     # copy files if not link register
@@ -157,7 +188,6 @@ def register_component_library(cls, path, link_register=False, ask_dialog=True):
             raise FileExistsError(f"Library '{lib_path.name}' already exists in registry")
         shutil.copytree(lib_path, dest_path)
         lib_path = dest_path
-        return str(lib_path)
     else:
         # Just create a JSON file pointing to the library path
         json_path = dest_path.with_suffix('.json')
@@ -169,7 +199,15 @@ def register_component_library(cls, path, link_register=False, ask_dialog=True):
                 'Path': str(lib_path),
                 'Version': info.get('Version', '0.0.1')
             }, f, indent=4)
-        return str(lib_path)
+
+    autogen_path = lib_path / 'autogen'
+    if autogen_path.exists():
+        shutil.rmtree(autogen_path)
+    os.makedirs(autogen_path)
+
+    cls.refresh_component_library(lib_path.name)
+
+    return str(lib_path)
 
 def get_or_create_component_library(cls, lib_name, close_after_creation=False):
     path = cls.get_library_path(lib_name)  # Define or import accordingly
@@ -203,8 +241,7 @@ def get_or_create_component_library(cls, lib_name, close_after_creation=False):
 
     manifest = {
         'Library': lib_name,
-        'Registry': {  # Initially empty
-        },
+        'Registry': {},  # Initially empty
         'Version': "0.0.1"
     }
 
@@ -335,6 +372,105 @@ def unregister_component(cls, component_name, lib_name):
     with open(plugins_file, 'w') as f:
         json.dump(plugins_data, f, indent=4)
 
+
+def make_component_registry_from_plugin_description(cls, plugin_path, lib_name, save_manifest_library_path=None):
+
+
+    plugin_desc_path = os.path.join(plugin_path, "plugins.json")
+    if not plugin_desc_path.endswith(".json"):
+        raise ValueError(f"Error parsing json. {plugin_desc_path} is not a json file.")
+    try:
+        with open(plugin_desc_path, 'r') as f:
+            pd = json5.load(f)
+    except Exception as e:
+        print("Error parsing library package.json")
+        raise e
+
+    plugin_package_path = os.path.join(plugin_path, "package.json")
+    if not plugin_package_path.endswith(".json"):
+        raise ValueError(f"Error parsing json. '{plugin_package_path}' is not a json file.")
+    try:
+        with open(plugin_package_path, 'r') as f:
+            pkg = json5.load(f)
+    except Exception as e:
+        print("Error parsing library package.json")
+        raise e
+
+    lib_path = os.path.dirname(plugin_desc_path)
+    registry = {z : [] for z in cls.get_supported_component_types()}
+    for p in pd.get('Plugins', []):
+        if p['Type'] == 'folder_scan':
+            scan_folder = os.path.join(lib_path, p['Path'])
+            if not os.path.isdir(scan_folder):
+                warnings.warn(f"Plugin folder '{scan_folder} does not exist. Skipping...")
+                continue
+            registry = cls.detect_components_from_path(scan_folder, registry)
+        elif p['Type'] == 'file':
+            comp_path = os.path.join(lib_path, p['Path'])
+            registry = cls.detect_component(comp_path, registry)
+
+    def append_lib_name_to_registry(registry, lib_name, version):
+        for comps in registry.values():
+            for comp in comps:
+                comp['Lib'] = lib_name
+                comp['LibVersion'] = version
+        return registry
+
+    append_lib_name_to_registry(registry, lib_name, pkg['Version'])
+
+    if save_manifest_library_path is not None:
+        manifest = {
+            'Registry': registry,
+            'Library': pkg['Library'],
+            'Version': pkg['Version']
+        }
+        dir_name = os.path.dirname(save_manifest_library_path)
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name, exist_ok=True)
+        with open(os.path.join(save_manifest_library_path, 'manifest.json'), 'w') as f:
+            json.dump(manifest, f, indent=4)
+
+    return registry
+
+def detect_components_from_path(cls, path, registry=None):
+    if registry is None:
+        registry = {z : [] for z in cls.get_supported_component_types()}
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            comp_path = os.path.join(root, file)
+            registry = cls.detect_component(comp_path, registry)
+    return registry
+
+def detect_component(cls, component_file, registry=None):
+    if registry is None:
+        registry = {z : [] for z in cls.get_supported_component_types()}
+    if not os.path.isfile(component_file):
+        raise FileNotFoundError(f"Component file '{component_file}' not found.")
+    if not cls.is_supported_component_file(component_file):
+        warnings.warn(f"Component file '{component_file}' is not a supported component file. Skipping.")
+        return registry
+    comp_info = cls.get_plugin_info_from_file(component_file)
+    comp_type = comp_info.get('T', 'unknown')
+    if comp_type not in registry:
+        registry[comp_type] = []
+    registry[comp_type].append(comp_info)
+    return registry
+
+
+def get_plugin_info_from_lib(cls, component_name, lib_name_or_path):
+    lib_path = cls.get_library_path(lib_name_or_path)
+    manifest_file = os.path.join(lib_path, 'autogen', 'manifest.json')
+    if not os.path.isfile(manifest_file):
+        raise ValueError(f"Library at '{lib_path}' does not contain a valid manifest.json file")
+
+    with open(manifest_file, 'r') as f:
+        plugins = json5.load(f)
+    registry = plugins.get('Registry', {})
+    for comp_type, comps in registry.items():
+        for comp in comps:
+            if comp['Name'] == component_name:
+                return comp
+
 def setup_library(cls, lib_name_or_path):
     pass
 
@@ -354,8 +490,10 @@ __all__ = ['get_library_path',
            'list_component_libraries',
            'get_plugin_info',
            'get_plugin_info_from_file',
+           'get_plugin_info_from_lib',
            'is_supported_component_file',
            'get_available_plugins',
+           'get_supported_component_types',
            'register_component_library',
            'get_or_create_component_library',
            'remove_component_library',
@@ -363,5 +501,8 @@ __all__ = ['get_library_path',
            'register_component_from_file',
            'register_component',
            'unregister_component',
+           'make_component_registry_from_plugin_description',
+           'detect_components_from_path',
+           'detect_component',
            'setup_library'
 ]

@@ -13,11 +13,12 @@ from csbenchlab.common_types import ScenarioOptions
 
 
 
-def parse_scenario(sc:ScenarioOptions, scenario_id, env_path) -> dict:
+def parse_scenario(sc:ScenarioOptions, scenario_id, env_path, ref_to_file) -> dict:
 
     data = sc.data
-    ref_path = save_reference(env_path, scenario_id, data["Reference"])
-    data["Reference"] = ref_path
+    if ref_to_file:
+        ref_path = save_reference(env_path, scenario_id, data["Reference"])
+        data["Reference"] = ref_path
     if isinstance(data["SystemIc"], np.ndarray):
         data["SystemIc"] = list(data["SystemIc"])
 
@@ -36,7 +37,7 @@ def eval_function(func, *args):
         return func(*args)
 
 
-def eval_scenario_description(env_path, scenario, env_data):
+def eval_scenario_description(env_path, scenario, env_data, ref_to_file):
     scenario_path = Path(env_path) / 'parts' / 'scenarios' / scenario['Id']
     if not scenario_path.exists():
         raise ValueError(f"Scenario path '{scenario_path}' does not exist for scenario '{scenario['Id']}'")
@@ -52,7 +53,7 @@ def eval_scenario_description(env_path, scenario, env_data):
         raise ValueError(f"Error evaluating 'scenario'" + \
                          f" function in '{scenario_file}' for scenario '{scenario['Id']}'" + f": {e}")
 
-    return parse_scenario(scenario_eval, scenario["Id"], env_path)
+    return parse_scenario(scenario_eval, scenario["Id"], env_path, ref_to_file)
 
 
 def save_reference(env_path, scenario_id, reference):
@@ -63,21 +64,23 @@ def save_reference(env_path, scenario_id, reference):
     return str(ref_path)
 
 
-def eval_scenario_descriptions(env_path, env_data_path):
+def eval_scenario_descriptions(env_path, env_data_or_path, ref_to_file=False):
 
     env_manager = EnvironmentDataManager(env_path)
     scenarios = env_manager.get_components('scenario')
 
-
-    with open(env_data_path, 'r') as f:
-        env_data = json5.load(f)
+    if isinstance(env_data_or_path, str):
+        with open(env_data_path, 'r') as f:
+            env_data = json5.load(f)
+    else:
+        env_data = env_data_or_path
 
     data = []
     for scenario in scenarios:
-        options = eval_scenario_description(env_path, scenario, env_data)
+        options = eval_scenario_description(env_path, scenario, env_data, ref_to_file)
         data.append(options)
 
-    return json.dumps(data)
+    return data
 
 
 
@@ -96,4 +99,4 @@ if __name__ == "__main__":
     if not env_data_path or not os.path.exists(env_data_path):
         raise ValueError(f"Environment data path '{env_data_path}' does not exist.")
 
-    result = eval_scenario_descriptions(env_path, env_data_path)
+    result = json.dumps(eval_scenario_descriptions(env_path, env_data_path, ref_to_file=True))

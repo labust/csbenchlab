@@ -15,22 +15,19 @@ csb_path = os.getenv('CSB_PATH', None)
 if csb_path is not None:
     CSB_PATH_OVERRIDE = csb_path
 
+
+def get_app_root_path():
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 def get_appdata_dir():
     if CSB_PATH_OVERRIDE is not None:
         return CSB_PATH_OVERRIDE
-    if os.name == 'nt':
-        appdata = os.getenv('APPDATA')
-        if appdata is None:
-            appdata = os.path.expanduser('~\\AppData\\Roaming')
-        path =  os.path.join(appdata, 'CSBenchLab')
-    else:
-        home = os.path.expanduser('~')
-        path = os.path.join(home, '.csbenchlab')
-
+    home = os.path.expanduser('~')
+    path = os.path.join(home, '.csbenchlab')
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     return path
 
 def get_app_registry_path():
-    return os.path.join(get_appdata_dir(), 'registry')
+    return os.path.join(get_appdata_dir(), 'registry', 'python')
 

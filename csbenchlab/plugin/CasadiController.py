@@ -16,7 +16,10 @@ class CasadiController(Controller):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.data_as_casadi = CasadiDict(self.data.__dict__)
+        if self.data is not None:
+            self.data_as_casadi = CasadiDict(self.data.__dict__)
+        else:
+            self.data_as_casadi = CasadiDict({})
 
         # Overload casadi functions
         self.casadi_configure()
@@ -49,7 +52,9 @@ class CasadiController(Controller):
                 setattr(self.data, key_without_new, value)
         return self.data
 
-    def on_step(self, y_ref, y, dt, data, *args, **kwargs):
+    def on_step(self, y_ref, y, dt, data=None, *args, **kwargs):
+        if data is None:
+            data = self.data_as_casadi
         d = {
             'y_ref': y_ref,
             'y': y,
@@ -60,7 +65,10 @@ class CasadiController(Controller):
             inputs = self.prepare_inputs(fn, d)
             sol = fn(**inputs)
             d = self.update_inputs(fn, sol, d)
-        return sol['out'], sol
+        res = np.array(sol['out'])
+        self.last_el = res[:, 0]
+        return self.last_el
+
 
     def update_inputs(self, fn, out, d):
         for i, name in enumerate(fn.name_out()):

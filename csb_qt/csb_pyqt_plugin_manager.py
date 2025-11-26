@@ -3,7 +3,7 @@ from PyQt6 import uic, QtCore
 import sys, os
 import subprocess
 from pathlib import Path
-from csb_qt.worker_thread import WorkerThread
+from csb_qt.qt_utils import do_in_thread
 
 plugin_types = {
     'ctl': 'Controllers',
@@ -98,8 +98,7 @@ class CSBPluginManager(QMainWindow):
         def run():
             self.backend.register_component_library(Path(path).parent, int(link_install), 0)
 
-        self.do_in_thread(run, on_finish)
-
+        self._do_fn(run, on_finish)
 
     def create_library(self):
 
@@ -120,14 +119,6 @@ class CSBPluginManager(QMainWindow):
     def link_library(self):
         self.register_component_library(link_install=True)
 
-    def do_in_thread(self, func, on_finish):
-        self.t = WorkerThread(self, func)
-        def on_finish_wrapper(*args):
-            self.setEnabled(True)
-            on_finish(*args)
-        self.t.finished.connect(on_finish_wrapper)
-        self.t.start()
-        self.setEnabled(False)
 
     def export_library(self):
         lib = self.get_active_library()
@@ -162,7 +153,7 @@ class CSBPluginManager(QMainWindow):
         def run():
             self.backend.refresh_component_library(lib)
 
-        self.do_in_thread(run, on_finish)
+        self._do_fn(run, on_finish)
 
     def register_component(self):
         lib = self.get_active_library()
@@ -223,7 +214,17 @@ class CSBPluginManager(QMainWindow):
                 self.log(f"Component '{full_component_path}' registered in library '{lib}'.")
                 self.load_plugins()
 
-        self.do_in_thread(run, on_finish)
+        self._do_fn(run, on_finish)
+
+    def _do_fn(self, fn, on_finish):
+        if self.backend.is_long_library_management:
+            do_in_thread(self, fn, on_finish)
+        else:
+            try:
+                result = fn()
+                on_finish(result, None)
+            except Exception as e:
+                on_finish(None, e)
 
     def unregister_component(self):
         lib = self.get_active_library()
@@ -307,7 +308,7 @@ class CSBPluginManager(QMainWindow):
 
 
     def open_plugin_file(self, plugin):
-        path = plugin.get('Path', "")
+        path = plugin.get('ComponentPath', "")
         if plugin["Type"] == 'slx':
             path = path.split(':')[0]
             self.log(f"Cannot open Simulink plugin file '{path}' from here. " \

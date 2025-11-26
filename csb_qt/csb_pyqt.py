@@ -6,6 +6,7 @@ import sys, os
 from csb_qt.csbenchlab.parameter_handler import ParameterHandler
 from csb_qt.csb_pyqt_env_manager import CSBEnvGui
 from csb_qt.csb_pyqt_plugin_manager import CSBPluginManager
+from csb_qt.qt_utils import do_in_thread
 from csbenchlab.csb_utils import load_app_config, save_app_config, instantiate_backend
 
 
@@ -103,11 +104,20 @@ class CSBenchlabGUI(QMainWindow):
     def set_backend(self, backend_name):
         if self._fill:
             return
-        (self.backend, msg) = instantiate_backend(backend_name, self.daemon_restart)
-        if self.backend is None:
-            QMessageBox.critical(self, "Error", msg)
-            self.backendCb.setCurrentText('python')
-            return
-        print(f"Using {backend_name} backend with csb path:", self.backend.csb_path)
-        self.cfg['active_backend'] = backend_name
-        save_app_config(self.cfg)
+
+        def run():
+            return instantiate_backend(backend_name, self.daemon_restart)
+
+        def finish(result, error):
+            if error:
+                QMessageBox.critical(self, "Error", f"Error instantiating backend '{backend_name}':\n{error}")
+                self.backendCb.setCurrentText('python')
+                return
+            (self.backend, msg) = result
+            print(f"Using {backend_name} backend with csb path:", self.backend.csb_path)
+            self.cfg['active_backend'] = backend_name
+            save_app_config(self.cfg)
+        # do_in_thread(self, run, finish)
+        run()
+        finish(run(), None)
+

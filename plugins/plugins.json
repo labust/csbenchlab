@@ -1,0 +1,20 @@
+{
+    "Plugins": [
+        {
+            "Type": "folder_scan",
+            "Path": "Controllers"
+        },
+        {
+            "Type": "folder_scan",
+            "Path": "DisturbanceGenerators"
+        },
+        {
+            "Type": "folder_scan",
+            "Path": "Estimators"
+        },
+        {
+            "Type": "folder_scan",
+            "Path": "Systems"
+        }
+    ]
+}
