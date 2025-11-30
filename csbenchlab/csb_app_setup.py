@@ -7,7 +7,7 @@ _BACKEND = None
 def get_backend():
     global _BACKEND
     if _BACKEND is None:
-        from backend.python_backend import PythonBackend
+        from csbenchlab.backend.python_backend import PythonBackend
         _BACKEND = PythonBackend()
     return _BACKEND
 

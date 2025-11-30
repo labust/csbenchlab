@@ -10,7 +10,7 @@ import zipfile
 
 from csbenchlab.csb_utils import load_app_config, get_active_backend
 from csbenchlab.csb_app_setup import get_appdata_dir
-from backend.python_backend import PythonBackend
+from csbenchlab.backend.python_backend import PythonBackend
 from pathlib import Path
 
 URI = "http://127.0.0.1:8000"

@@ -38,6 +38,17 @@
             "justMyCode": false
         },
         {
+            "name": "Eval env",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/m_scripts/eval_control_environment.py",
+            "console": "integratedTerminal",
+            "args": [ "--env-path",
+                     "/home/luka/fer/csbenchlab_gym/envs/examples/python_linear_control",
+            ],
+            "justMyCode": false
+        },
+        {
             "name": "Python Debugger: Main",
             "type": "debugpy",
             "request": "launch",

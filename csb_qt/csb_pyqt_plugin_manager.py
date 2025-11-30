@@ -368,7 +368,7 @@ class CSBPluginManager(QMainWindow):
             item_lay = QHBoxLayout()
             label = QLabel(p['Name'])
             item_lay.addWidget(label)
-            lib = QLabel(f"({p['Lib']})")
+            lib = QLabel(f"({lib})")
             item_lay.addWidget(lib)
             typ = QLabel(f"({p['Type']})")
             item_lay.addWidget(typ)

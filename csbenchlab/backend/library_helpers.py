@@ -24,8 +24,16 @@ def get_available_plugins(cls):
         if os.path.isfile(manifest_file):
             with open(manifest_file, 'r') as f:
                 data = json5.load(f)
+                for k, v in data["Registry"].items():
+                    if not isinstance(v, list):
+                        v = [v]
+                        data["Registry"][k] = v
+                    for it in v:
+                        it["Lib"] = data["Library"]
+                        it["LibVersion"] = data["Version"]
+
                 plugins[data["Library"]] = data["Registry"]
-                plugins[data["Library"]]["LibVersion"] = data["Version"]
+
     return plugins
 
 

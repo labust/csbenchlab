@@ -6,7 +6,10 @@ import bdsim as bd
 from bdsim.blocks.sources import Constant, Time
 from bdsim.blocks.sinks import Null
 from bdsim.blocks.displays import Scope
-import pickle
+from m_scripts.eval_scenario_descriptions import eval_scenario_descriptions
+from csbenchlab.sim_output import SimOutput
+
+
 
 class ControlEnvironment:
 
@@ -17,17 +20,28 @@ class ControlEnvironment:
             "controllers": List[ControllerBlock]
         }
 
-    def __init__(self, env_name: str, backend=None):
-        self.env_name = env_name
+    def __init__(self, env_path: str, env_metadata:dict, backend=None):
+        self.env_path = env_path
+        self.env_name = env_metadata.get("Name", "GeneratedEnvironment")
+        self.data = env_metadata
+        self.Ts = env_metadata.get("Ts", 0.01)
         self._module_classes = {}
         self._components = {}
         self.backend = backend
+        self.sim = BDSim()
+        self.scenarios = []
 
-    def generate(self, comp_descriptions, blockdiagram, env_params, Ts, system_dims):
-        d = blockdiagram
+        self.d = self.sim.blockdiagram(name=self.env_name)
+
+    def generate(self, comp_descriptions, env_params, generate_scopes=False):
+        d = self.d
+        Ts = self.Ts
         self.import_component_modules(comp_descriptions)
+
+        sys = comp_descriptions["system"]
+        system_dims = self.backend.get_system_dims(sys, env_params[sys["Id"]])
         self.generate_component_instances(comp_descriptions, env_params, system_dims)
-        clock = blockdiagram.clock(Ts, name="Clock")
+        clock = d.clock(Ts, name="Clock")
         self.reference = Reference(name="Reference")
         self.const_Ts = Constant(Ts)
         self.time = Time(name="Time")
@@ -37,10 +51,7 @@ class ControlEnvironment:
         self.ctls = []
         self.scopes = []
         for i, controller in enumerate(self._components["controllers"]):
-            scope = Scope(name="Scope" + f"_{i}", nin=2)
-            d.add_block(scope)
             name = comp_descriptions["system"]["Name"] + f"_{i}"
-            sys = comp_descriptions["system"]
             plant = PlantBlock(clock, sys, self._components["systems"][i], system_dims, name=name)
             d.add_block(plant)
             name = comp_descriptions["controllers"][i]["Name"]
@@ -49,17 +60,49 @@ class ControlEnvironment:
             null = Null(name="Null" + f"_{i}")
             d.add_block(null)
             d.connect(self.reference[0], controller[0])
-            d.connect(plant[0], controller[1], scope[0])
             d.connect(self.const_Ts[0], controller[2])
-            d.connect(controller[0], plant[0], scope[1])
             d.connect(self.time[0], plant[1])
             d.connect(self.const_Ts[0], plant[2])
             d.connect(controller[1], null[0])
+            d.connect(plant[0], controller[1])
+            d.connect(controller[0], plant[0])
             self.plants.append(plant)
             self.ctls.append(controller)
-            self.scopes.append(scope)
+            if generate_scopes:
+                scope = Scope(name="Scope" + f"_{i}", nin=2, )
+                d.add_block(scope)
+                d.connect(plant[0], scope[0])
+                d.connect(controller[0], scope[1])
+                self.scopes.append(scope)
+
+        env_data = {
+            'dt': Ts,
+            'system_dims': {
+                "Inputs": system_dims["Inputs"],
+                "Outputs": system_dims["Outputs"],
+            }
+        }
+        self.scenarios = eval_scenario_descriptions(self.env_path, env_data)
+        self.blocks = [self.reference] + self.plants + self.ctls
+        return self.blocks
+
+    def get_scenarios(self):
+        return self.scenarios
+
+    def select_scenario(self, index: int):
+        if index < 0 or index >= len(self.scenarios):
+            raise IndexError("Scenario index out of range.")
+        self.set_scenario(self.scenarios[index])
 
 
+    def compile(self):
+        self.d.compile()
+        self.d.report_lists()
+
+
+    def run(self, T: float, watch: List[str]=[]):
+        out = self.sim.run(self.d, T=T, watch=watch)
+        return SimOutput(out)
 
     def set_scenario(self, scenario):
         self.reference.set_data(scenario["Reference"][:, 0], scenario["Reference"][:, 1:])

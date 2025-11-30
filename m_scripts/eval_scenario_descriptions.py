@@ -100,3 +100,5 @@ if __name__ == "__main__":
         raise ValueError(f"Environment data path '{env_data_path}' does not exist.")
 
     result = json.dumps(eval_scenario_descriptions(env_path, env_data_path, ref_to_file=True))
+
+    eval

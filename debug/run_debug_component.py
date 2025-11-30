@@ -7,7 +7,7 @@ from m_scripts.get_plugin_info import get_plugin_info_from_file
 from csbenchlab.eval_parameters import eval_plugin_params
 from types import SimpleNamespace
 from csbenchlab.environment_data_manager import EnvironmentDataManager
-from backend.python_backend import PythonBackend
+from csbenchlab.backend.python_backend import PythonBackend
 
 def debug_component(env_path, controller_name, mux):
 

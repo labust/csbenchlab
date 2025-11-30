@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import os, shutil
 from pathlib import Path
-from csb_qt.qt_utils import open_file_in_editor
 
 
 class DataDescBase(ABC):
@@ -26,6 +25,7 @@ class DataDescBase(ABC):
         pass
 
     def open_file(self, filename):
+        from csb_qt.qt_utils import open_file_in_editor
         file_path = os.path.join(self.path, filename)
         if os.path.exists(file_path):
             open_file_in_editor(file_path)
@@ -48,9 +48,6 @@ class DataDescBase(ABC):
             file_path = Path(self.path) / f
             if file_path.exists():
                 os.remove(file_path)
-
-
-
 
 def get_default_callbacks_txt_file(comp):
         return f"""

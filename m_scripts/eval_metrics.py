@@ -40,16 +40,24 @@ def eval_metric(env_path, metric, sim_results):
 
     return results_eval
 
-def eval_metrics(env_path, env_results_path):
+def eval_metrics(env_data_or_path, env_results_or_path):
 
-    env_manager = EnvironmentDataManager(env_path)
-    metrics = env_manager.get_components('metric')
+    if isinstance(env_data_or_path, str):
+        env_manager = EnvironmentDataManager(env_data_or_path)
+        metrics = env_manager.get_components('metric')
+        env_path = env_data_or_path
+    else:
+        metrics = env_data_or_path.metrics
+        env_path = env_data_or_path.env_path
 
-    sim_results = sio.loadmat(env_results_path)
+    if isinstance(env_results_or_path, str):
+        sim_results = sio.loadmat(env_results_or_path)
+    else:
+        sim_results = env_results_or_path
 
     results = []
-    for scenario in metrics:
-        res = eval_metric(env_path, scenario, sim_results)
+    for m in metrics:
+        res = eval_metric(env_path, m, sim_results)
         if res is not None:
             results.append(res)
 

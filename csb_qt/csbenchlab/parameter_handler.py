@@ -103,13 +103,17 @@ class ComponentParams:
         fields = []
         rest_keys = []
         for key, value in params.items():
-
             if isinstance(value, bool):
                 fields.append(f"{key}: bool = {value}")
             elif isinstance(value, int):
                 fields.append(f"{key}: int = {value}")
             elif isinstance(value, float):
-                fields.append(f"{key}: float = {value}")
+                if np.isposinf(value):
+                    fields.append(f"{key}: float = np.inf")
+                elif np.isneginf(value):
+                    fields.append(f"{key}: float = -np.inf")
+                else:
+                    fields.append(f"{key}: float = {value}")
             elif isinstance(value, str) and not is_special_string(value):
                 fields.append(f"{key}: str = '{value}'")
             elif value is None:
@@ -137,7 +141,9 @@ class ComponentParams:
             else:
                 if key in rest_keys:
                     fields.append(f"# {key}: {type(value).__name__} = {repr(value)}  ### UNSUPPORTED TYPE, PLEASE EDIT MANUALLY")
-
-        fields_str = "    " + "\n    ".join(fields)
+        if len(fields) > 0:
+            fields_str = "    " + "\n    ".join(fields)
+        else:
+            fields_str = "    pass"
         full_src = src.format(component.get('Id', ''), fields_str)
         return full_src

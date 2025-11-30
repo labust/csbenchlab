@@ -1,6 +1,7 @@
 from csbenchlab.plugin import CasadiController
 from csbenchlab.descriptor import ParamDescriptor
 import casadi as ca
+import numpy as np
 
 
 class MPC(CasadiController):
@@ -11,8 +12,8 @@ class MPC(CasadiController):
         ParamDescriptor(name='B', default_value=0.0),
         ParamDescriptor(name='C', default_value=0.0),
         ParamDescriptor(name='D', default_value=0.0),
-        ParamDescriptor(name='sat_min', default_value=-float('inf')),
-        ParamDescriptor(name='sat_max', default_value=float('inf')),
+        ParamDescriptor(name='sat_min', default_value=-np.inf),
+        ParamDescriptor(name='sat_max', default_value=np.inf),
         ParamDescriptor(name="Q", default_value=1.0),
         ParamDescriptor(name="R", default_value=1.0),
 
@@ -22,17 +23,19 @@ class MPC(CasadiController):
         # define the casadi MPC solver here
 
         self.x0 = ca.SX.sym('x0', self.params.A.shape[0], 1)  # state
-        self.y_ref = ca.SX.sym('x_ref', self.params.A.shape[0], 1)  # reference state
+        self.y_ref = ca.SX.sym('y_ref', self.params.C.shape[0], 1)  # reference state
         L = int(self.params.L)
         cost = 0
         X = self.x0
         U = []
         g = []
+        if self.params.D == 0:
+            self.params.D = np.zeros((self.params.B.shape[1], self.params.C.shape[0]))
         for k in range(L):
             u_k = ca.SX.sym(f'u_{k}', self.params.B.shape[1], 1)
             X = self.params.A @ X + self.params.B @ u_k
             Y = self.params.C @ X + self.params.D @ u_k
-            cost += ca.sumsqr(Y - self.y_ref) @ self.params.Q + ca.sumsqr(u_k) @ self.params.R
+            cost += ca.sumsqr((Y - self.y_ref).T @ self.params.Q @ (Y - self.y_ref)) + ca.sumsqr(u_k.T @ self.params.R @ u_k)
             g.append(u_k - self.params.sat_max < 0)
             g.append(self.params.sat_min - u_k < 0)
             U.append(u_k)

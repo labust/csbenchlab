@@ -51,13 +51,13 @@ class PythonBackend:
 
 
 
-import backend.library_helpers as lib_helpers
+import csbenchlab.backend.library_helpers as lib_helpers
 for f in lib_helpers.__all__:
     if hasattr(PythonBackend, f):
         raise ValueError(f"Function '{f}' already exists in PythonBackend")
     setattr(PythonBackend, f, classmethod(getattr(lib_helpers, f)))
 
-import backend.environment_helpers as env_helpers
+import csbenchlab.backend.environment_helpers as env_helpers
 for f in env_helpers.__all__:
     if hasattr(PythonBackend, f):
         raise ValueError(f"Function '{f}' already exists in PythonBackend")

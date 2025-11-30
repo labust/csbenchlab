@@ -279,8 +279,6 @@ class ControllerWidget(QWidget):
 
     def on_remove(self):
         ctl = self.app.remove_component(self)
-        if ctl is not None:
-            self._remove_controller_subcontrollers(ctl)
 
     def on_subcontroller_selected(self):
         idx = self.subcontrollerList.currentRow()
@@ -345,7 +343,6 @@ class ControllerWidget(QWidget):
 
     def clear_subcontroller_list(self):
         self.subcontrollerList.clear()
-        self._remove_controller_subcontrollers(self.data)
         self.data["Subcontrollers"] = []
 
     def on_is_composable_changed(self, state, record=True):

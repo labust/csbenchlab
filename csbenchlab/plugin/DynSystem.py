@@ -20,7 +20,7 @@ class DynSystem(PluginBase):
     @classmethod
     @abstractmethod
     def get_dims_from_params(cls, params):
-        pass
+        raise NotImplementedError()
 
     @classmethod
     def create_data_model(cls, params):
@@ -50,8 +50,8 @@ class DynSystem(PluginBase):
         self.last_el = self._ic
         return self.on_configure()
 
-    def step(self, y, t, dt, *args, **kwargs):
-        result = self.on_step(y, t, dt, *args)
+    def step(self, u, t, dt, *args, **kwargs):
+        result = self.on_step(u, t, dt, *args)
         self.last_el = result
         return result
 

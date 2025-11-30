@@ -1,6 +1,6 @@
 import os
 from PyQt6.QtWidgets import *
-from PyQt6 import uic, QtCore
+from PyQt6 import uic
 
 from .system_widget import SystemWidget
 from .controller_widget import ControllerWidget
@@ -10,11 +10,7 @@ from .gen_options_widget import GenOptionsWidget
 from csb_qt.qt_utils import clear_form_layout, do_in_thread
 
 from csbenchlab.env_model import Metadata
-from csb_qt.worker_thread import WorkerThread
 from csbenchlab.check_environment import check_environment
-
-
-
 
 class EnvironmentWidget(QWidget):
 
@@ -22,7 +18,7 @@ class EnvironmentWidget(QWidget):
 
     def __init__(self, data, parent=None):
         QWidget.__init__(self, parent=parent)
-        ui_path = parent.ui_path if parent is not None else ''
+        ui_path = parent.ui_path
         uic.loadUi(os.path.join(ui_path, 'environment.ui'), self)
         self.app = parent
         self.backend = self.app.backend
@@ -50,7 +46,6 @@ class EnvironmentWidget(QWidget):
         self.addScenarioBtn.clicked.connect(self.on_add_scenario)
         self.addMetricBtn.clicked.connect(self.on_add_metric)
         self.editReferencesBtn.clicked.connect(self.on_edit_references)
-
 
         self.display_meta_data(data.get('Metadata', {}))
 

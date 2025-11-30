@@ -26,7 +26,7 @@ def instantiate_backend(backend_name, restart_daemon=False):
         backend = MatlabBackend(restart_daemon=restart_daemon)
         backend.start()
     elif backend_name == 'python':
-        from backend.python_backend import PythonBackend
+        from csbenchlab.backend.python_backend import PythonBackend
         backend = PythonBackend()
         backend.start()
     else:

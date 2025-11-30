@@ -6,7 +6,7 @@ from pathlib import Path
 from csbenchlab.scenario_templates.control_environment import ControlEnvironment
 from uuid import uuid4
 
-def generate_control_environment(cls, env_path, system_instance:str=None, controller_ids:str=None):
+def load_control_environment_params_and_data(cls, env_path, system_instance:str=None, controller_ids:str=None):
 
     mgr = EnvironmentDataManager(env_path)
     data = mgr.load_environment_data()
@@ -29,6 +29,7 @@ def generate_control_environment(cls, env_path, system_instance:str=None, contro
     if len(filtered) != len(data.controllers):
         warnings.warn("Some controllers are not implemented in Python and will be ignored.")
     data.controllers = filtered
+    data.env_path = env_path
 
     if data.metadata["Ts"] <= 0:
         raise ValueError("Invalid sampling time 'Ts' in environment metadata.")
@@ -36,6 +37,15 @@ def generate_control_environment(cls, env_path, system_instance:str=None, contro
     env_params = eval_environment_params(env_path, data)
 
     return env_params, data
+
+def generate_control_environment(cls, env_path, system_instance:str=None, controller_ids:str=None):
+    from csb_qt.qt_utils import open_file_in_editor
+    source = env_eval_file.format(env_path=env_path)
+    name = cls.get_env_name(env_path)
+    file_path = Path(env_path) / f"{name}.py"
+    with open(file_path, 'w') as f:
+        f.write(source)
+    open_file_in_editor(file_path)
 
 def create_environment(cls, base_path: str, env_name: str):
     """
@@ -96,6 +106,10 @@ def setup_environment(cls, env_path: str):
     pass
 
 
+def get_env_name(cls, env_path: str):
+    return Path(env_path).stem
+
+
 def get_system_dims(cls, system_description: dict, params) -> dict:
     """
     Retrieves the input and output dimensions of the system described by the given description.
@@ -126,4 +140,45 @@ __all__ = ['generate_control_environment',
            'create_environment',
            'is_valid_environment_path',
            'setup_environment',
-           'get_system_dims']
+           'get_system_dims',
+           'get_env_name',
+           'load_control_environment_params_and_data']
+
+
+
+
+env_eval_file = """
+from argparse import ArgumentParser
+from csbenchlab.backend.python_backend import PythonBackend
+from csbenchlab.scenario_templates.control_environment import ControlEnvironment
+from m_scripts.eval_metrics import eval_metrics
+from bdsim import BDSim
+
+
+def eval_control_environment(env_path, system_instance:str=None, controller_ids:str=None):
+    backend = PythonBackend()
+    env_params, data = backend.load_control_environment_params_and_data(env_path, system_instance, controller_ids)
+
+    env = ControlEnvironment(env_path, data.metadata, backend=backend)
+
+    plants = env.generate({{
+        "system": data.systems[0],
+        "controllers": data.controllers
+    }}, env_params=env_params, generate_scopes=False)
+
+    env.select_scenario(0)
+    env.compile()
+    out = env.run(T=5.0, watch=plants)
+
+
+    r = eval_metrics(data, out)
+    print(r)
+
+
+def main():
+    env_path = "{env_path}"
+    eval_control_environment(env_path)
+
+if __name__ == "__main__":
+    main()
+"""

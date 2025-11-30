@@ -235,13 +235,13 @@ class CSBEnvGui(QMainWindow):
         del container[widget.index]
         self.fill_tree_view()
         if len(container) == 0:
-            w = EnvironmentWidget(self)
+            w = EnvironmentWidget(self.env_data.metadata, self)
         else:
             idx = max(0, widget.index-1)
             if idx < len(container):
                 w = widget_cls(idx, container[idx], self)
             else:
-                w = EnvironmentWidget(self)
+                w = EnvironmentWidget(self.env_data.metadata, self)
         self.set_widget(w)
         self.env_manager.remove_component(obj)
         self.log(f"Removed {dcls.__name__.lower()}: {name}")
@@ -518,7 +518,7 @@ if __name__ == '__main__':
         backend.start()
         print("Using matlab backend with csb path:", backend.csb_path)
     elif args.backend == 'py':
-        from backend.python_backend import PythonBackend
+        from csbenchlab.backend.python_backend import PythonBackend
         backend = PythonBackend()
         backend.start()
         print("Using python backend with csb path:", backend.csb_path)

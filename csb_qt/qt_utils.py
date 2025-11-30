@@ -1,6 +1,5 @@
 import sys, os, subprocess
 from pathlib import Path
-from csb_qt.worker_thread import WorkerThread
 
 def clear_form_layout(form_layout):
     while form_layout.count():
@@ -30,6 +29,7 @@ def open_file_in_editor(path):
 
 
 def do_in_thread(parent, func, on_finish):
+    from csb_qt.worker_thread import WorkerThread
     parent.t = WorkerThread(parent, func)
     def on_finish_wrapper(*args):
         parent.setEnabled(True)
