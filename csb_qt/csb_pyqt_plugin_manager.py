@@ -290,7 +290,7 @@ class CSBPluginManager(QMainWindow):
 
 
             # set border only for this widget, not for its children
-            widget.setStyleSheet("border: 1px solid blue;")
+            widget.setStyleSheet("border: 1px solid #ff7e67;")
             for c in widget.children():
                 if isinstance(c, QWidget):
                     c.setStyleSheet("border: 1px solid transparent;")

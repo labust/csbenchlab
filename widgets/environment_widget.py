@@ -23,13 +23,13 @@ class EnvironmentWidget(QWidget):
     def __init__(self, data, parent=None):
         QWidget.__init__(self, parent=parent)
         ui_path = parent.ui_path if parent is not None else ''
-        uic.loadUi(os.path.join(ui_path, 'environment.ui'), self)
-        self.app = parent
-        self.backend = self.app.backend
-        self.env_data = parent.env_data
-        self.data = data
-        self._fill = False
-        self.init_environment(self.env_data)
+        uic.loadUi(os.path.join(ui_path, 'environment_2.ui'), self)
+        # self.app = parent
+        # self.backend = self.app.backend
+        # self.env_data = parent.env_data
+        # self.data = data
+        # self._fill = False
+        # self.init_environment(self.env_data)
 
     def init_environment(self, env_data):
         data = env_data.metadata

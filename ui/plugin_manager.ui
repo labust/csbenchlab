@@ -16,7 +16,22 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,10,5">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="4,10">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
+       <number>10</number>
+      </property>
+      <property name="topMargin">
+       <number>10</number>
+      </property>
+      <property name="rightMargin">
+       <number>10</number>
+      </property>
+      <property name="bottomMargin">
+       <number>10</number>
+      </property>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
@@ -27,7 +42,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="libraryListWidget"/>
+         <widget class="QListWidget" name="libraryListWidget">
+          <property name="cursor" stdset="0">
+           <cursorShape>ArrowCursor</cursorShape>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::FocusPolicy::NoFocus</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -35,25 +57,15 @@
            <number>0</number>
           </property>
           <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <property name="rightMargin">
              <number>0</number>
             </property>
             <item>
              <widget class="QPushButton" name="createLibraryBtn">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="text">
                <string>Create library</string>
               </property>
@@ -61,6 +73,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="searchOnlineBtn">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="text">
                <string>Search online</string>
               </property>
@@ -68,27 +83,46 @@
             </item>
             <item>
              <widget class="QPushButton" name="exportLibraryBtn">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="text">
                <string>Export library</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="installLibraryBtn">
-              <property name="text">
-               <string>Install library</string>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <property name="topMargin">
+               <number>0</number>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="linkLibraryBtn">
-              <property name="text">
-               <string>Link library</string>
-              </property>
-             </widget>
+              <item>
+               <widget class="QPushButton" name="installLibraryBtn">
+                <property name="cursor">
+                 <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="text">
+                 <string>Install library</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="linkLibraryBtn">
+                <property name="cursor">
+                 <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="text">
+                 <string>Link library</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
              <widget class="QPushButton" name="unregisterLibraryBtn">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="text">
                <string>Unregister library</string>
               </property>
@@ -96,25 +130,12 @@
             </item>
            </layout>
           </item>
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
          </layout>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
+       <layout class="QVBoxLayout" name="verticalLayout_3" stretch="10,2,6">
         <property name="rightMargin">
          <number>0</number>
         </property>
@@ -132,6 +153,9 @@
           </property>
           <item row="0" column="1">
            <widget class="QPushButton" name="unregisterComponentBtn">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
             <property name="text">
              <string>Unregister components</string>
             </property>
@@ -139,6 +163,9 @@
           </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="registerComponentBtn">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
             <property name="text">
              <string>Register component</string>
             </property>
@@ -146,66 +173,35 @@
           </item>
           <item row="1" column="0">
            <widget class="QPushButton" name="refreshLibraryBtn">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
             <property name="text">
              <string>Refresh library</string>
             </property>
            </widget>
           </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QTextEdit" name="logTxt"/>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="QTreeWidget" name="contextTreeWidget">
-          <column>
-           <property name="text">
-            <string notr="true">1</string>
-           </property>
-          </column>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QPushButton" name="editPipDependenciesBtn">
-            <property name="text">
-             <string>Edit pip dependencies</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="editMatDependenciesBtn">
-            <property name="text">
-             <string>Edit mat dependencies</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="editSetupFileBtn">
-            <property name="text">
-             <string>Edit setup file</string>
-            </property>
-           </widget>
-          </item>
-          <item>
+          <item row="1" column="1">
            <widget class="QPushButton" name="openContextBtn">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
             <property name="text">
              <string>Open context</string>
             </property>
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="logTxt">
+          <property name="focusPolicy">
+           <enum>Qt::FocusPolicy::NoFocus</enum>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

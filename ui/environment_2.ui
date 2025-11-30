@@ -249,7 +249,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_5">
        <property name="title">
-        <string>Environment info</string>
+        <string/>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>

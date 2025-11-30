@@ -264,7 +264,7 @@ class CSBEnvGui(QMainWindow):
     def make_name_unique(self, name, objects):
         if not isinstance(objects, list):
             objects = [objects]
-        existing_names = [o['Name'] for o in objects]
+        existing_names = [o.get('Name', 'Unnamed') for o in objects]
         if name not in existing_names:
             return name
         i = 1
@@ -277,6 +277,7 @@ class CSBEnvGui(QMainWindow):
     def fill_tree_view(self):
 
         self.treeWidget.clear()
+        self.treeWidget.header().hide()
 
         root = QTreeWidgetItem(self.treeWidget)
         root.setText(0, "Environment")
