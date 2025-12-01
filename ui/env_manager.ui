@@ -21,7 +21,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
       </property>
       <property name="leftMargin">
        <number>0</number>
@@ -34,9 +34,12 @@
           <height>0</height>
          </size>
         </property>
+        <property name="focusPolicy">
+         <enum>Qt::FocusPolicy::NoFocus</enum>
+        </property>
         <column>
          <property name="text">
-          <string notr="true">1</string>
+          <string notr="true"/>
          </property>
         </column>
        </widget>
@@ -59,14 +62,18 @@
        </layout>
       </item>
       <item>
-       <widget class="QTextBrowser" name="logText"/>
+       <widget class="QTextBrowser" name="logText">
+        <property name="focusPolicy">
+         <enum>Qt::FocusPolicy::NoFocus</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
     <item>
      <spacer name="horizontalSpacer">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
@@ -84,7 +91,7 @@
      <x>0</x>
      <y>0</y>
      <width>918</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

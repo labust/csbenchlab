@@ -45,9 +45,7 @@ class EnvironmentWidget(QWidget):
         self.addControllerBtn.clicked.connect(self.on_add_controller)
         self.addScenarioBtn.clicked.connect(self.on_add_scenario)
         self.addMetricBtn.clicked.connect(self.on_add_metric)
-        self.editReferencesBtn.clicked.connect(self.on_edit_references)
-
-        self.display_meta_data(data.get('Metadata', {}))
+        self.display_meta_data(data.get("Metadata", {}))
 
     def on_coder_extrinsic_changed(self, state):
         self.env_data.metadata['CoderExtrinsic'] = bool(state)
@@ -55,15 +53,27 @@ class EnvironmentWidget(QWidget):
             self.record_change()
 
     def display_meta_data(self, meta_data):
-        clear_form_layout(self.metadataFormLayout)
+        clear_form_layout(self.metadataFormLayout1)
+        clear_form_layout(self.metadataFormLayout2)
+        clear_form_layout(self.metadataFormLayout3)
+        i = 1
         for k, v in meta_data.items():
             key_lbl = QLabel(k)
+            if k == "Created" or k == "Modified":
+                continue
             val_txt = QLineEdit(str(v))
             # set clicked callback to update metadata
             val_txt.textChanged.connect(lambda text, key=k: self.on_metadata_changed(key, text))
-            self.metadataFormLayout.addRow(key_lbl, val_txt)
+            layout = getattr(self, f'metadataFormLayout{i}')
+            layout.addRow(key_lbl, val_txt)
+            i += 1
+            if i > 3:
+                i = 1
 
     def on_metadata_changed(self, key, value):
+        if key == "Version":
+            self.env_data.metadata["Version"] = value
+            return
         self.env_data.metadata["Metadata"][key] = value
         if not self._fill:
             self.record_change()
@@ -178,6 +188,3 @@ class EnvironmentWidget(QWidget):
 
     def on_add_metric(self):
         self.app.add_component(MetricWidget)
-
-    def on_edit_references(self):
-        pass

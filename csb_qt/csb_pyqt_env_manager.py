@@ -52,6 +52,7 @@ class CSBEnvGui(QMainWindow):
         self.widget_changed = dict()
         self.active_editable_labels = []
         self.selected_labels = []
+        self.log("Loaded environment from: " + str(env_path))
 
         # click on first item
         self.treeWidget.setCurrentItem(self.treeWidget.topLevelItem(0).child(0))
@@ -189,7 +190,7 @@ class CSBEnvGui(QMainWindow):
 
     def remove_subcomponent(self, component, parent_widget, field_name, idx=-1, ask_confirmation=True):
         # prompt for confirmation
-        comp_name = component["Name"]
+        comp_name = component.get('Name', 'subcomponent')
         if ask_confirmation:
             widget_name = parent_widget.data[field_name]["Name"]
             reply = QMessageBox.question(self, 'Remove Confirmation',
@@ -264,7 +265,7 @@ class CSBEnvGui(QMainWindow):
     def make_name_unique(self, name, objects):
         if not isinstance(objects, list):
             objects = [objects]
-        existing_names = [o['Name'] for o in objects]
+        existing_names = [o.get('Name', 'Unnamed') for o in objects]
         if name not in existing_names:
             return name
         i = 1
@@ -277,6 +278,7 @@ class CSBEnvGui(QMainWindow):
     def fill_tree_view(self):
 
         self.treeWidget.clear()
+        self.treeWidget.header().hide()
 
         root = QTreeWidgetItem(self.treeWidget)
         root.setText(0, "Environment")

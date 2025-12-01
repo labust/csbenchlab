@@ -290,7 +290,7 @@ class CSBPluginManager(QMainWindow):
 
 
             # set border only for this widget, not for its children
-            widget.setStyleSheet("border: 1px solid blue;")
+            widget.setStyleSheet("border: 1px solid #ff7e67;")
             for c in widget.children():
                 if isinstance(c, QWidget):
                     c.setStyleSheet("border: 1px solid transparent;")
@@ -364,14 +364,31 @@ class CSBPluginManager(QMainWindow):
         lay = QVBoxLayout()
         w = QWidget()
         w.setLayout(lay)
+
+        plugin_list.append({
+            "Name": "LQR",
+            "Type": "slx",
+        })
+
+        plugin_list.append({
+            "Name": "Sliding Mode",
+            "Type": "slx",
+        })
+
+        plugin_list.append({
+            "Name": "H infinity",
+            "Type": "slx",
+        })
+
+
         for i, p in enumerate(plugin_list):
             item_lay = QHBoxLayout()
             label = QLabel(p['Name'])
             item_lay.addWidget(label)
-            lib = QLabel(f"({lib})")
-            item_lay.addWidget(lib)
-            typ = QLabel(f"({p['Type']})")
-            item_lay.addWidget(typ)
+            lib_label = QLabel(f"({lib})")
+            item_lay.addWidget(lib_label)
+            typ_label = QLabel(f"({p['Type']})")
+            item_lay.addWidget(typ_label)
             item_lay.addStretch()
             # set border when active on click and callback
             item_lay_widget = QWidget()
@@ -381,7 +398,9 @@ class CSBPluginManager(QMainWindow):
             item_lay_widget.mousePressEvent = lambda event, w=item_lay_widget: self.on_plugin_selected(w)
             item_lay_widget.mouseDoubleClickEvent = lambda event, p=p: self.on_plugin_double_clicked(p)
             lay.addWidget(item_lay_widget)
-            # if clicked, show details
+
+
+        # if clicked, show details
         lay.addStretch()
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)

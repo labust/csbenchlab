@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from uuid import uuid4
 from typing import List
+from types import SimpleNamespace
 
 
 
@@ -45,13 +46,15 @@ def set_as_dict(cls):
 class Metadata:
     Name: str = "New Environment"
     Description: str = ""
-    Authors: List[str] = field(default_factory=list)
-    Version: str = "0.0.1"
-    License: str = ""
-    Tags: list = field(default_factory=list)
-    Created: str = ""
-    Modified: str = ""
     ComponentType: str = "metadata"
+    Metadata: dict = field(default_factory=lambda: {
+        "Authors": [],
+        "Version": "0.0.1",
+        "License": "",
+        "Tags": [],
+        "Created": "",
+        "Modified": ""
+    })
 
 
 
