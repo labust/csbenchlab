@@ -15,4 +15,4 @@ and seamless plugin integration with the rest of the toolbox features.
 ## Examples
 [Examples](doc/Examples.md)
 
-![DDCBMARK](doc/schema.png)
+![DDCBMARK](doc/schema.pdf)

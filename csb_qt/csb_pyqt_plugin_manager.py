@@ -365,22 +365,6 @@ class CSBPluginManager(QMainWindow):
         w = QWidget()
         w.setLayout(lay)
 
-        plugin_list.append({
-            "Name": "LQR",
-            "Type": "slx",
-        })
-
-        plugin_list.append({
-            "Name": "Sliding Mode",
-            "Type": "slx",
-        })
-
-        plugin_list.append({
-            "Name": "H infinity",
-            "Type": "slx",
-        })
-
-
         for i, p in enumerate(plugin_list):
             item_lay = QHBoxLayout()
             label = QLabel(p['Name'])
