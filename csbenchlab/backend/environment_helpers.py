@@ -162,17 +162,22 @@ def eval_control_environment(env_path, system_instance:str=None, controller_ids:
 
     env = ControlEnvironment(env_path, data.metadata, backend=backend)
 
+    metrics = load_metrics(env_path)
     env.generate({{
-        "system": data.systems[0],
-        "controllers": data.controllers
-    }}, env_params=env_params, generate_scopes=False)
+            "system": data.systems[0],
+            "controllers": data.controllers
+        }},
+        env_params=env_params,
+        generate_scopes=False,
+        live_metrics=[m.metric for m in metrics.live_metrics]
+    )
 
     scenario = env.select_scenario(0)
     env.compile()
     out = env.run(T=scenario["SimulationTime"])
 
 
-    r = eval_metrics(data, out)
+    r = eval_metrics(metrics.post_metrics, out)
     plt.show()
     print(r)
 

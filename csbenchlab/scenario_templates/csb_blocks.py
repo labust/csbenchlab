@@ -50,7 +50,10 @@ class PlantBlock(ClockedBlock):
 class SystemMetric(SinkBlock):
 
     def __init__(self, metrics, **blockargs):
-        self.metrics = metrics
+
+        self.metrics = []
+        for m in metrics:
+            self.metrics.append(m())
         inames = ['y']
         onames = []
         self.nout = len(onames)

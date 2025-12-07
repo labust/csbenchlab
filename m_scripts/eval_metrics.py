@@ -8,7 +8,9 @@ import json5, json
 import numpy as np
 from csbenchlab.environment_data_manager import EnvironmentDataManager
 from csbenchlab.plugin_helpers import import_module_from_path
+from csbenchlab.helpers.metric_helpers import LiveMetricBase
 import scipy.io as sio
+from types import SimpleNamespace
 
 
 def eval_function(func, *args):
@@ -22,26 +24,16 @@ def eval_function(func, *args):
     else:
         return func(*args)
 
-def eval_metric(env_path, metric, sim_results):
-    metric_path = Path(env_path) / 'parts' / 'metrics' / metric['Id']
-    if not metric_path.exists():
-        raise ValueError(f"Metric path '{metric_path}' does not exist for scenario '{metric['Id']}'")
-    metric_file = metric_path / 'metric.py'
-
-    metric_module = import_module_from_path(metric_file) if metric_file.exists() else None
-    if metric_module is None or not hasattr(metric_module, 'metric'):
-        raise ValueError(f"'metric' function not defined in '{metric_file}' for scenario '{metric['Id']}'")
-
+def eval_metric(metric, sim_results):
     try:
-        results_eval = eval_function(metric_module.metric, sim_results)
+        results_eval = eval_function(metric.metric, sim_results)
     except Exception as e:
         raise ValueError(f"Error evaluating 'metric'" +
-                         f" function in '{metric_file}' for scenario '{metric['Id']}'" + f": {e}")
+                         f" function in '{metric.file_path}' for scenario '{metric['Id']}'" + f": {e}")
 
     return results_eval
 
-def eval_metrics(env_data_or_path, env_results_or_path):
-
+def load_metrics(env_data_or_path):
     if isinstance(env_data_or_path, str):
         env_manager = EnvironmentDataManager(env_data_or_path)
         metrics = env_manager.get_components('metric')
@@ -50,6 +42,29 @@ def eval_metrics(env_data_or_path, env_results_or_path):
         metrics = env_data_or_path.metrics
         env_path = env_data_or_path.env_path
 
+    loaded_metrics = SimpleNamespace(live_metrics = [], post_metrics = [])
+    for m in metrics:
+        metric_path = Path(env_path) / 'parts' / 'metrics' / m['Id']
+        if not metric_path.exists():
+            raise ValueError(f"Metric path '{metric_path}' does not exist for scenario '{m['Id']}'")
+        metric_file = metric_path / 'metric.py'
+
+        metric_module = import_module_from_path(metric_file) if metric_file.exists() else None
+        if metric_module is None or not hasattr(metric_module, 'metric'):
+            raise ValueError(f"'metric' function not defined in '{metric_file}' for scenario '{m['Id']}'")
+
+        metric = SimpleNamespace(metric=metric_module.metric, file_path=str(metric_file))
+        # check if it is a class first
+        if isinstance(metric_module.metric, type) and issubclass(metric_module.metric, LiveMetricBase):
+            loaded_metrics.live_metrics.append(metric)
+        elif callable(metric_module.metric):
+            loaded_metrics.post_metrics.append(metric)
+        else:
+            raise ValueError(f"'metric' in '{metric_file}' is neither callable nor a 'LiveMetricBase' subclass for scenario '{m['Id']}'")
+    return loaded_metrics
+
+
+def eval_metrics(metrics, env_results_or_path):
     if isinstance(env_results_or_path, str):
         sim_results = sio.loadmat(env_results_or_path)
     else:
@@ -57,16 +72,22 @@ def eval_metrics(env_data_or_path, env_results_or_path):
 
     results = []
     for m in metrics:
-        res = eval_metric(env_path, m, sim_results)
-        if res is not None:
-            results.append(res)
+        results_eval = eval_metric(m, sim_results)
+        if not isinstance(results_eval, dict):
+            raise ValueError(f"Metric evaluation did not return a dictionary, got {type(results_eval)}")
+        results.append(results_eval)
 
     return json.dumps(results, indent=4)
 
 
+def eval_environment_metrics(env_data_or_path, env_results_or_path):
+    # eval metrics only works on post metrics
+    loaded_metrics = load_metrics(env_data_or_path).post_metrics
+    results = eval_metrics(loaded_metrics, env_results_or_path)
+    return json.dumps(results, indent=4)
+
 
 if __name__ == "__main__":
-
 
     parser = ArgumentParser(description="Get information about a specific plugin.")
     parser.add_argument("--env-path", type=str, default="", help="Path to the environment directory.")
@@ -80,4 +101,4 @@ if __name__ == "__main__":
     if not results_path or not os.path.exists(results_path):
         raise ValueError(f"Results path '{results_path}' does not exist.")
 
-    result = eval_metrics(env_path, results_path)
+    result = eval_environment_metrics(env_path, results_path)

@@ -7,6 +7,11 @@ from csbenchlab.sim_output import SimOutput
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+class LiveMetricBase:
+    def __call__(self, time, value):
+        pass
+
 def is_valid_field(params, key):
     return params is not None and key in params and params[key] is not None
 
