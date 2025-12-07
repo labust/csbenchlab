@@ -9,13 +9,15 @@ class CasadiDict:
         for key, value in value_dict.items():
             self._idx[key] = i
             if isinstance(value, (int, float)):
-                v = ca.MX.sym(key)
+                v = ca.DX.sym(key)
             elif isinstance(value, (list, tuple)):
-                v = ca.MX.sym(key, len(value))
-            elif isinstance(value, ca.MX) or isinstance(value, ca.SX):
+                v = ca.DX.sym(key, len(value))
+            elif isinstance(value, ca.DM):
                 v = value
+            elif isinstance(value, ca.MX) or isinstance(value, ca.SX):
+                raise ValueError("CasadiDict does not support MX or SX types as input values.")
             else:
-                v = ca.MX.sym(key, value.shape)
+                v = ca.DX.sym(key, value.shape)
             self._values.append(v)
             i += 1
 
@@ -39,4 +41,4 @@ class CasadiDict:
 
     @property
     def values(self):
-        return [x for x in self._values if (isinstance(x, ca.MX) or isinstance(x, ca.SX))]
+        return [x for x in self._values]

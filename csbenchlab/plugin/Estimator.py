@@ -7,12 +7,12 @@ class Estimator(PluginBase):
         pass
 
     @abstractmethod
-    def on_configure(self, params):
+    def on_configure(self):
         """Called when the controller is configured with parameters."""
         pass
 
     @abstractmethod
-    def on_step(self, params):
+    def on_step(self, y, dt):
         """Called on each step with the current parameters."""
         pass
 

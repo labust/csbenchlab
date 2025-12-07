@@ -55,11 +55,11 @@ def out_with_ref(out: SimOutput, ref_dimensions=[], out_dimensions=[],
     if controllers is not None and len(controllers) > 0:
         names = controllers
     else:
-        names = list(out.y.keys())
+        names = list(out.signals.__dict__.keys())
 
     # Plot each controller output
     for n in names:
-        data_obj = out.y[n]
+        data_obj = getattr(out.signals, n).y
         data = data_obj.Data
         sz = data.shape
 
@@ -109,8 +109,7 @@ def out_with_ref(out: SimOutput, ref_dimensions=[], out_dimensions=[],
         for i in range(len(ref_dims)):
             leg_names.append(f"Reference_{i+1}")
         # Output labels
-        fns = list(out.y.keys())
-        for name in fns:
+        for name in names:
             for j in range(len(out_dims)):
                 leg_names.append(f"{name}_{j+1}")
         ax.legend(leg_names)

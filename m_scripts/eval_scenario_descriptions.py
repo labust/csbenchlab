@@ -13,14 +13,17 @@ from csbenchlab.common_types import ScenarioOptions
 
 
 
-def parse_scenario(sc:ScenarioOptions, scenario_id, env_path, ref_to_file) -> dict:
+def parse_scenario(sc:ScenarioOptions, scenario, env_path, ref_to_file) -> dict:
 
     data = sc.data
     if ref_to_file:
-        ref_path = save_reference(env_path, scenario_id, data["Reference"])
+        ref_path = save_reference(env_path, scenario["Id"], data["Reference"])
         data["Reference"] = ref_path
     if isinstance(data["SystemIc"], np.ndarray):
         data["SystemIc"] = list(data["SystemIc"])
+    data["SimulationTime"] = float(scenario.get("SimulationTime", 0.0))
+    data["Disturbance"] = scenario.get("Disturbance", None)
+
 
     return data
 
@@ -53,7 +56,7 @@ def eval_scenario_description(env_path, scenario, env_data, ref_to_file):
         raise ValueError(f"Error evaluating 'scenario'" + \
                          f" function in '{scenario_file}' for scenario '{scenario['Id']}'" + f": {e}")
 
-    return parse_scenario(scenario_eval, scenario["Id"], env_path, ref_to_file)
+    return parse_scenario(scenario_eval, scenario, env_path, ref_to_file)
 
 
 def save_reference(env_path, scenario_id, reference):

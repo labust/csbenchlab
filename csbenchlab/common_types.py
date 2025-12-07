@@ -1,9 +1,6 @@
 from typing import Any
 from types import SimpleNamespace
 
-class DataModel(SimpleNamespace):
-    pass
-
 class ScenarioOptions():
 
     def __init__(self,

@@ -1,5 +1,6 @@
 from csbenchlab.plugin import Controller
 from csbenchlab.descriptor import ParamDescriptor
+import numpy as np
 
 
 class PID(Controller):
@@ -12,23 +13,29 @@ class PID(Controller):
         ParamDescriptor(name='sat_max', default_value=float('inf')),
     ]
 
-
     def on_configure(self):
         self._previous_error = 0.0
         self._integral = 0.0
 
+    def wrap_angle(self, angle):
+        """Wrap angle to [-pi, pi]."""
+        return (angle + np.pi) % (2 * np.pi) - np.pi
+
     def on_step(self, y_ref, y, dt):
         error = y_ref - y
-        self._integral += error * dt
-        derivative = (error - self._previous_error) / dt if dt > 0 else 0.0
+        u = self.params.Kp @ error
 
-        u = (self.params.Kp * error +
-             self.params.Ki * self._integral +
-             self.params.Kd * derivative)
+        if self.params.Ki != 0.0:
+            self._integral += error * dt
+            u += self.params.Ki * self._integral
+        if self.params.Kd != 0.0:
+            derivative = (error - self._previous_error) / dt if dt > 0 else 0.0
+            u += self.params.Kd * derivative
+            self._previous_error = error
 
         # Apply saturation limits
-        u = max(self.params.sat_min, min(self.params.sat_max, u))
+        u = np.maximum(self.params.sat_min, np.minimum(self.params.sat_max, u))
 
-        self._previous_error = error
+        # u = np.array([0])
         return u
 

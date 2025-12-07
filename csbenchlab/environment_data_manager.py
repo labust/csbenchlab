@@ -177,6 +177,7 @@ class EnvironmentDataManager:
             raise ValueError(f"Invalid environment path: {env_path}")
 
         full_env_path = Path(env_path)
+        self.env_path = full_env_path
         self.standalone_comp_managers = {
             k: ComponentDataManager(full_env_path / v["destination_path"], v["data_file"], v.get("data_desc_class", None)) \
                 for k, v in COMPONENT_DATA_DESC.items() if v.get("standalone", False)
@@ -197,7 +198,7 @@ class EnvironmentDataManager:
                 comp_destination = get_component_context_path(component).parent
                 file_name = desc["data_file"]
                 data_desc_class = desc.get("data_desc_class", None)
-                self.subcomponent_managers[parent_id] = ComponentDataManager(comp_destination, file_name, data_desc_class)
+                self.subcomponent_managers[parent_id] = ComponentDataManager(self.env_path/comp_destination, file_name, data_desc_class)
             return self.subcomponent_managers[parent_id]
 
 

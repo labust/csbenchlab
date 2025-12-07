@@ -65,9 +65,9 @@ class CasadiController(Controller):
             inputs = self.prepare_inputs(fn, d)
             sol = fn(**inputs)
             d = self.update_inputs(fn, sol, d)
-        res = np.array(sol['out'])
-        self.last_el = res[:, 0]
-        return self.last_el
+        res = np.array(sol['u'])
+        u = res[:, 0]
+        return u
 
 
     def update_inputs(self, fn, out, d):

@@ -14,18 +14,29 @@ def clear_form_layout(form_layout):
                     clear_form_layout(sublayout)
 
 
+def open_folder(path):
+    if path is None or not os.path.exists(path):
+        raise FileNotFoundError(f"The specified path does not exist: {path}")
+    if sys.platform == "win32":
+        os.startfile(path)
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", path])
+    else:
+        subprocess.Popen(["xdg-open", path])
+
 def open_file_in_editor(path):
-    if path:
-        if sys.platform == 'win32':
-            os.startfile(path)
-        elif sys.platform == 'darwin':  # macOS
-            subprocess.call(['open', path])
-        else:  # Linux, Unix
-            # subprocess.call(['xdg-open', path])
-            if Path(path).is_file():
-                subprocess.call(['code', path])
-            else:
-                subprocess.call(['xdg-open', path])
+    if path is None or not os.path.exists(path):
+        raise FileNotFoundError(f"The specified path does not exist: {path}")
+    if sys.platform == 'win32':
+        os.startfile(path)
+    elif sys.platform == 'darwin':  # macOS
+        subprocess.call(['open', path])
+    else:  # Linux, Unix
+        # subprocess.call(['xdg-open', path])
+        if Path(path).is_file():
+            subprocess.call(['code', path])
+        else:
+            subprocess.call(['xdg-open', path])
 
 
 def do_in_thread(parent, func, on_finish):

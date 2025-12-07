@@ -11,6 +11,7 @@ from widgets import SystemWidget, ControllerWidget, ScenarioWidget, MetricWidget
 from csb_qt.qt_utils import clear_form_layout, open_file_in_editor
 from csbenchlab.data_desc import COMPONENT_DATA_DESC
 
+
 def env_has_to_be_changed(item):
     # check if env is changing
     if item is None:

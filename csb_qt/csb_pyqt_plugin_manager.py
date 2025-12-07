@@ -3,7 +3,7 @@ from PyQt6 import uic, QtCore
 import sys, os
 import subprocess
 from pathlib import Path
-from csb_qt.qt_utils import do_in_thread
+from csb_qt.qt_utils import do_in_thread, open_file_in_editor, open_folder
 
 plugin_types = {
     'ctl': 'Controllers',
@@ -11,6 +11,62 @@ plugin_types = {
     'est': 'Estimators',
     'dist': 'Disturbances',
 }
+
+class NewLibraryDialog(QDialog):
+    def __init__(self, parent=None, title="Enter values"):
+        super().__init__(parent)
+        self.parent = parent
+        self.setWindowTitle(title)
+        layout = QFormLayout(self)
+        self.le = QLineEdit(self)
+        self.le.setMinimumWidth(300)
+        layout.addRow("Name", self.le)
+        self.is_linked = QCheckBox(self)
+        layout.addRow("Is Linked Library", self.is_linked)
+        self.is_linked.stateChanged.connect(self.on_is_linked)
+        self.browse_btn = QPushButton("Browse", self)
+        self.browse_btn.clicked.connect(self.on_browse)
+        hlayout = QHBoxLayout()
+        self.link_path = QLineEdit(self)
+        hlayout.addWidget(self.link_path)
+        hlayout.addWidget(self.browse_btn)
+        self.link_path_w = QWidget(self)
+        self.link_path_w.setLayout(hlayout)
+        layout.addRow("Link Path", self.link_path_w)
+        # hide whole row initially
+        layout.labelForField(self.link_path_w).setVisible(False)
+        self.link_path_w.setVisible(False)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+        self.layout = layout
+
+    def accept(self):
+        name, is_linked, link_path = self.values()
+        if name is None or name.strip() == "":
+            self.parent.log("Invalid library name.")
+            return
+        if is_linked:
+            if link_path is None or link_path.strip() == "":
+                self.parent.log("Invalid link path for linked library.")
+                return
+        return super().accept()
+
+    def on_browse(self):
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Link Directory", "")
+        if dir_path:
+            self.link_path.setText(dir_path)
+    def on_is_linked(self, state):
+        if state == QtCore.Qt.CheckState.Checked.value:
+            self.layout.labelForField(self.link_path_w).setVisible(True)
+            self.link_path_w.setVisible(True)
+        else:
+            self.layout.labelForField(self.link_path_w).setVisible(False)
+            self.link_path_w.setVisible(False)
+
+    def values(self):
+        return [self.le.text(), self.is_linked.isChecked(), self.link_path.text()]
 
 class CSBPluginManager(QMainWindow):
     def __init__(self, backend, parent=None):
@@ -23,6 +79,8 @@ class CSBPluginManager(QMainWindow):
         self.init()
         self.active_plugins = []
         self.libraryListWidget.setCurrentRow(0)
+        self.do_in_progress = False
+
 
 
     def init(self):
@@ -50,6 +108,7 @@ class CSBPluginManager(QMainWindow):
         self.exportLibraryBtn.clicked.connect(self.export_library)
         self.installLibraryBtn.clicked.connect(self.install_library)
         self.linkLibraryBtn.clicked.connect(self.link_library)
+        self.detectLibrariesFromFolderBtn.clicked.connect(self.detect_libraries_from_folder)
 
     def on_app_clicked(self, event):
         self.clear_selected_plugins()
@@ -81,8 +140,9 @@ class CSBPluginManager(QMainWindow):
         self.logTxt.setTextCursor(cursor)
         self.logTxt.insertPlainText(f"[{t_now}] {msg}\n")
 
-    def register_component_library(self, link_install):
-        path = self.ask_library_path()
+    def register_component_library(self, path=None, link_install=False):
+        if path is None:
+            path = Path(self.ask_library_path()).parent
         if path is None:
             self.log("Invalid library file selected.")
             return
@@ -96,19 +156,27 @@ class CSBPluginManager(QMainWindow):
             self.load_plugins()
 
         def run():
-            self.backend.register_component_library(Path(path).parent, int(link_install), 0)
+            self.backend.register_component_library(Path(path), int(link_install), 0)
 
         self._do_fn(run, on_finish)
 
     def create_library(self):
+        # get name and install/link and path from QInputDialog
+        # name, ok = QInputDialog.getText(self, 'Create Library', 'Enter library name:')
 
-        name, ok = QInputDialog.getText(self, 'Create Library', 'Enter library name:')
-        if not ok or not name:
-            self.log("Invalid library name.")
+        dlg = NewLibraryDialog(self)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            name, is_linked, link_path = dlg.values()
+        else:
             return
+
         self.log(f"Creating library '{name}'. This may take a few moments...")
 
-        self.backend.get_or_create_component_library(name)
+        if is_linked:
+            self.backend.get_or_create_component_library(name, link_path)
+        else:
+            self.backend.get_or_create_component_library(name)
+
         self.load_plugins()
         self.fill_tab(self.tabWidget.currentIndex())
         self.log(f"Library '{name}' created.")
@@ -119,6 +187,33 @@ class CSBPluginManager(QMainWindow):
     def link_library(self):
         self.register_component_library(link_install=True)
 
+
+    def detect_libraries_from_folder(self):
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Directory to Scan for Libraries", "")
+        if not dir_path:
+            self.log("Invalid directory selected.")
+            return
+        self.log(f"Detecting libraries in '{dir_path}'. This may take a few moments...")
+
+        for d in Path(dir_path).iterdir():
+            if str(d) == dir_path:
+                continue
+            # check library already registered
+            if any(l['Path'] == str(d) for l in self.libraries):
+                self.log(f"Library in '{d}' is already registered. Skipping...")
+                continue
+            # check library name already exists
+            if any(l['Name'] == d.name for l in self.libraries):
+                self.log(f"Library name '{d.name}' already exists. Skipping library in '{d}'...")
+                continue
+
+            if self.backend.is_valid_component_library(d):
+                self.log(f"Library detected in '{d}'. Registering...")
+                self.register_component_library(path=d, link_install=True)
+
+        self.load_plugins()
+        self.fill_tab(self.tabWidget.currentIndex())
+        self.log(f"Library detection in '{dir_path}' completed.")
 
     def export_library(self):
         lib = self.get_active_library()
@@ -217,14 +312,23 @@ class CSBPluginManager(QMainWindow):
         self._do_fn(run, on_finish)
 
     def _do_fn(self, fn, on_finish):
+
+        while self.do_in_progress:
+            QtCore.QCoreApplication.processEvents()
+
         if self.backend.is_long_library_management:
-            do_in_thread(self, fn, on_finish)
+            self.do_in_progress = True
+            def on_finish_wrapper(result, error):
+                self.do_in_progress = False
+                on_finish(result, error)
+            do_in_thread(self, fn, on_finish_wrapper)
         else:
             try:
                 result = fn()
                 on_finish(result, None)
             except Exception as e:
                 on_finish(None, e)
+        self.do_in_progress = False
 
     def unregister_component(self):
         lib = self.get_active_library()
@@ -314,18 +418,9 @@ class CSBPluginManager(QMainWindow):
             self.log(f"Cannot open Simulink plugin file '{path}' from here. " \
             "Please open it from MATLAB.")
             return
-        if path is not None and os.path.exists(path):
-            if sys.platform == "win32":
-                os.startfile(path)
-            elif sys.platform == "darwin":
-                subprocess.Popen(["open", path])
-            else:
-                subprocess.Popen(["xdg-open", path])
-        else:
-            QMessageBox.warning(self, "Warning", "Plugin file path not found.")
+        open_file_in_editor(path)
 
     def open_context(self):
-
         lib = self.get_active_library()
         if lib is None:
             lib = self.libraryListWidget.item(0).text()
@@ -333,13 +428,8 @@ class CSBPluginManager(QMainWindow):
         l = next((l for l in self.libraries if l['Name'] == lib), None)
         # open folder in file explorer, for all os
         path = l.get('Path', None)
-        if path is not None and os.path.exists(path):
-            if sys.platform == "win32":
-                os.startfile(path)
-            elif sys.platform == "darwin":
-                subprocess.Popen(["open", path])
-            else:
-                subprocess.Popen(["xdg-open", path])
+        if path is not None and self.backend.is_valid_component_library(path):
+            open_folder(path)
         else:
             QMessageBox.warning(self, "Warning", "Library path not found.")
 

@@ -68,3 +68,21 @@ def get_plugin_class(plugin_path: str) -> dict:
     if not hasattr(plugin_module, plugin_name):
         raise ValueError(f"Plugin '{plugin_name}' does not have a 'Plugin' class.")
     return getattr(plugin_module, plugin_name)
+
+def get_plugin_class_from_info(info) -> dict:
+    """
+    Retrieves information about a plugin by its name from a specified library.
+
+    Args:
+        plugin_name (str): The name of the plugin to retrieve information for.
+        library_path (str): The path to the library containing the plugin.
+
+    Returns:
+        dict: A dictionary containing the plugin's information, including its name,
+              description, and parameters.
+
+    Raises:
+        ValueError: If the plugin does not exist in the specified library.
+    """
+    plugin_path = info["ComponentPath"]
+    return get_plugin_class(plugin_path)

@@ -217,7 +217,7 @@ def register_component_library(cls, path, link_register=False, ask_dialog=True):
 
     return str(lib_path)
 
-def get_or_create_component_library(cls, lib_name, close_after_creation=False):
+def get_or_create_component_library(cls, lib_name, library_path=None, close_after_creation=False):
     path = cls.get_library_path(lib_name)  # Define or import accordingly
     if path is not None:
         return {
@@ -225,8 +225,10 @@ def get_or_create_component_library(cls, lib_name, close_after_creation=False):
             'name': lib_name
         }
 
+    root_dir = get_app_registry_path() if library_path is None else library_path
+
     # create new library
-    path = os.path.join(get_app_registry_path(), lib_name)
+    path = os.path.join(root_dir, lib_name)
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -268,6 +270,9 @@ def get_or_create_component_library(cls, lib_name, close_after_creation=False):
     handle = {}
     handle['path'] = path
     handle['name'] = lib_name
+
+    if library_path is not None:
+        cls.register_component_library(lib_name, library_path, link_register=True, ask_dialog=False)
 
     return handle
 

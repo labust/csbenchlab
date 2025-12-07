@@ -21,8 +21,6 @@ def load_control_environment_params_and_data(cls, env_path, system_instance:str=
 
     if controller_ids is None or controller_ids == '':
         controller_ids = [c["Id"] for c in data.controllers]
-    else:
-        controller_ids = json.loads(controller_ids)
     data.controllers = [c for c in data.controllers if c["Id"] in controller_ids]
     filtered = [c for c in data.controllers if c["PluginImplementation"] == "py"]
 
@@ -40,7 +38,9 @@ def load_control_environment_params_and_data(cls, env_path, system_instance:str=
 
 def generate_control_environment(cls, env_path, system_instance:str=None, controller_ids:str=None):
     from csb_qt.qt_utils import open_file_in_editor
-    source = env_eval_file.format(env_path=env_path)
+    source = env_eval_file.format(env_path=env_path,
+        system_instance=system_instance or "None",
+        controller_ids=controller_ids or '"None"')
     name = cls.get_env_name(env_path)
     file_path = Path(env_path) / f"{name}.py"
     with open(file_path, 'w') as f:
@@ -153,6 +153,7 @@ from csbenchlab.backend.python_backend import PythonBackend
 from csbenchlab.scenario_templates.control_environment import ControlEnvironment
 from m_scripts.eval_metrics import eval_metrics
 from bdsim import BDSim
+from matplotlib import pyplot as plt
 
 
 def eval_control_environment(env_path, system_instance:str=None, controller_ids:str=None):
@@ -161,23 +162,26 @@ def eval_control_environment(env_path, system_instance:str=None, controller_ids:
 
     env = ControlEnvironment(env_path, data.metadata, backend=backend)
 
-    plants = env.generate({{
+    env.generate({{
         "system": data.systems[0],
         "controllers": data.controllers
     }}, env_params=env_params, generate_scopes=False)
 
-    env.select_scenario(0)
+    scenario = env.select_scenario(0)
     env.compile()
-    out = env.run(T=5.0, watch=plants)
+    out = env.run(T=scenario["SimulationTime"])
 
 
     r = eval_metrics(data, out)
+    plt.show()
     print(r)
 
 
 def main():
     env_path = "{env_path}"
-    eval_control_environment(env_path)
+    system_instance = "{system_instance}"
+    controller_ids = {controller_ids}
+    eval_control_environment(env_path, system_instance, controller_ids)
 
 if __name__ == "__main__":
     main()

@@ -64,14 +64,14 @@ class ScenarioWidget(QWidget):
         dist = self.data.get("Disturbance", {})
         if not dist:
             self.record_change()
-            self.app.add_subcomponent(Disturbance, self, 'Disturbance')
+            dist = self.app.add_subcomponent(Disturbance, self, 'Disturbance')
         self.app.set_widget(DisturbanceWidget(dist, self))
 
 
     def on_remove_disturbance(self):
         dist = self.data.get("Disturbance", {})
         if dist:
-            self.app.remove_subcomponent(Disturbance, self, 'Disturbance', False)
+            self.app.remove_subcomponent(dist, self, 'Disturbance', False)
             self.addDisturbanceBtn.setText("Add Disturbance")
             self.removeDisturbanceBtn.setVisible(False)
         self.record_change()

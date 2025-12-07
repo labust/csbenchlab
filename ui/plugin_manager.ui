@@ -47,7 +47,7 @@
            <cursorShape>ArrowCursor</cursorShape>
           </property>
           <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::NoFocus</enum>
+           <enum>Qt::NoFocus</enum>
           </property>
          </widget>
         </item>
@@ -117,6 +117,13 @@
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="detectLibrariesFromFolderBtn">
+              <property name="text">
+               <string>Detect libraries from folder</string>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="unregisterLibraryBtn">
@@ -196,7 +203,7 @@
         <item>
          <widget class="QTextEdit" name="logTxt">
           <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::NoFocus</enum>
+           <enum>Qt::NoFocus</enum>
           </property>
           <property name="readOnly">
            <bool>true</bool>

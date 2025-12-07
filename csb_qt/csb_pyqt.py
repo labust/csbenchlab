@@ -9,6 +9,57 @@ from csb_qt.csb_pyqt_plugin_manager import CSBPluginManager
 from csb_qt.qt_utils import do_in_thread
 from csbenchlab.csb_utils import load_app_config, save_app_config, instantiate_backend
 
+class NewEnvironmentDialog(QDialog):
+    def __init__(self, parent=None, title="Enter values"):
+        super().__init__(parent)
+        self.parent = parent
+        self.setWindowTitle(title)
+        layout = QFormLayout(self)
+        self.le = QLineEdit(self)
+        self.le.setMinimumWidth(300)
+        layout.addRow("Name", self.le)
+        self.browse_btn = QPushButton("Browse", self)
+        self.browse_btn.clicked.connect(self.on_browse)
+        hlayout = QHBoxLayout()
+        self.path = QLineEdit(self)
+        hlayout.addWidget(self.path)
+        hlayout.addWidget(self.browse_btn)
+        self.path_w = QWidget(self)
+        self.path_w.setLayout(hlayout)
+        layout.addRow("Link Path", self.path_w)
+        self.err_label = QLabel(self)
+        layout.addRow("Invalid:", self.err_label)
+        self.err_label.setVisible(False)
+        layout.labelForField(self.err_label).setVisible(False)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel, self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+        self.layout = layout
+
+    def accept(self):
+        name, path = self.values()
+        if name is None or name.strip() == "":
+            self.err_label.setText("Invalid environment name.")
+            self.err_label.setVisible(True)
+            self.layout.labelForField(self.err_label).setVisible(True)
+            return
+        if path is None or path.strip() == "":
+            self.err_label.setText("Invalid path for environment.")
+            self.err_label.setVisible(True)
+            self.layout.labelForField(self.err_label).setVisible(True)
+            return
+        return super().accept()
+
+    def on_browse(self):
+        dir_path = QFileDialog.getExistingDirectory(self, "Select Link Directory", "")
+        if dir_path:
+            self.path.setText(dir_path)
+
+    def values(self):
+        return [self.le.text(), self.path.text()]
+
+
 
 class CSBenchlabGUI(QMainWindow):
     def __init__(self, ui_path, debug=False, daemon_restart=False, parent=None):
@@ -25,6 +76,15 @@ class CSBenchlabGUI(QMainWindow):
         self.daemon_restart = daemon_restart
         self.init()
 
+
+
+
+    def set_minimum_height_width(self):
+        num_envs = self.envListWidget.count()
+        self.envListWidget.setMinimumHeight(min(200, 30 + num_envs * 30))
+        self.envListWidget.setMaximumHeight(800)
+        self.envListWidget.setMinimumWidth(200)
+
     def init(self):
         self.cfg = load_app_config()
         self.setWindowTitle("CSBenchlab GUI")
@@ -38,6 +98,7 @@ class CSBenchlabGUI(QMainWindow):
         self.envListWidget.itemDoubleClicked.connect(self.on_env_double_clicked)
         self.envListWidget.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.envListWidget.addItems([x["Name"] for x in self.cfg['envs']])
+        self.set_minimum_height_width()
 
     def remove_environment(self):
         selected_items = self.envListWidget.selectedItems()
@@ -53,22 +114,23 @@ class CSBenchlabGUI(QMainWindow):
     def new_environment(self):
 
         # select folder to create new environment
-        path = QFileDialog.getExistingDirectory(self, "Select Directory to Create New Environment", "")
-        if path:
-            env_name, ok = QInputDialog.getText(self, "Environment Name", "Enter Environment Name:")
-            if ok and env_name:
-                env_path = os.path.join(path, f"{env_name}")
-                if os.path.exists(env_path):
-                    QMessageBox.warning(self, "Error", f"Environment file already exists: {env_path}")
-                    return
-                self.backend.create_environment(path, env_name)
-                data = self.load_environment(Path(env_path))
-                self.cfg['envs'].append({
-                    'Path': env_path,
-                    'Name': data.metadata.get('Name', env_name)
-                })
-                save_app_config(self.cfg)
-                self.envListWidget.addItem(data.metadata.get('Name', env_name))
+        d = NewEnvironmentDialog(self, title="New Environment")
+        if d.exec() != QDialog.DialogCode.Accepted:
+            return
+        env_name, path = d.values()
+
+        env_path = os.path.join(path, f"{env_name}")
+        if os.path.exists(env_path):
+            QMessageBox.warning(self, "Error", f"Environment file already exists: {env_path}")
+            return
+        self.backend.create_environment(path, env_name)
+        data = self.load_environment(Path(env_path))
+        self.cfg['envs'].append({
+            'Path': env_path,
+            'Name': data.metadata.get('Name', env_name)
+        })
+        save_app_config(self.cfg)
+        self.envListWidget.addItem(data.metadata.get('Name', env_name))
 
 
     def load_environment(self, path):

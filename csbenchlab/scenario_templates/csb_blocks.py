@@ -1,4 +1,4 @@
-from bdsim import BDSim, SourceBlock, EventSource, ClockedBlock, TransferBlock
+from bdsim import BDSim, SourceBlock, EventSource, ClockedBlock, TransferBlock, SinkBlock
 import numpy as np
 
 class Reference(SourceBlock, EventSource):
@@ -31,7 +31,7 @@ class PlantBlock(ClockedBlock):
         onames = ['y']
         self.nout = len(onames)
         self.nin = len(inames)
-        self._x0 = []
+        self._x0 = [] # necessary for BDSim
         ClockedBlock.__init__(self, clock=clock, inames=inames, onames=onames, **blockargs)
 
     def set_ic(self, ic):
@@ -47,6 +47,21 @@ class PlantBlock(ClockedBlock):
         return xnext
 
 
+class SystemMetric(SinkBlock):
+
+    def __init__(self, metrics, **blockargs):
+        self.metrics = metrics
+        inames = ['y']
+        onames = []
+        self.nout = len(onames)
+        self.nin = len(inames)
+        SinkBlock.__init__(self, inames=inames, onames=onames, **blockargs)
+
+    def step(self, t, u):
+        for metric in self.metrics:
+            metric(t, u[0])
+
+
 class ControllerBlock(ClockedBlock):
 
 
@@ -57,12 +72,35 @@ class ControllerBlock(ClockedBlock):
         onames = ['u', 'log']
         self.nout = len(onames)
         self.nin = len(inames)
-        self._x0 = []
+        self._x0 = [] # necessary for BDSim
         ClockedBlock.__init__(self, clock=clock, inames=inames, onames=onames, **blockargs)
 
 
     def output(self, t, u, x):
         return [self.obj.last_el, []]
+
+    def next(self, t, u, x):
+        u_next = self.obj.step(*u)
+        return u_next
+
+
+class NoiseBlock(ClockedBlock):
+
+
+    def __init__(self, clock, system_dims=None, obj=None, **blockargs):
+        self.system_dims = system_dims
+        self.obj = obj
+        inames = ['y', 'dt']
+        onames = ['y_n']
+        self.nout = len(onames)
+        self.nin = len(inames)
+        self._x0 = [] # necessary for BDSim
+        ClockedBlock.__init__(self, clock=clock, inames=inames, onames=onames, **blockargs)
+
+    def output(self, t, u, x):
+        if self.obj is None:
+            return np.zeros((self.system_dims["Outputs"],))
+        return [self.obj.last_el]
 
     def next(self, t, u, x):
         u_next = self.obj.step(*u)
