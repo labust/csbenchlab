@@ -27,12 +27,11 @@ The Environment is composed from four integral parts:
         - remove_controller
 
 
-3) Scenario definition file
-    - Realized as a list of Scenario structures or the path to the ".mat" file containing Scenario structures
-    - A Scenario represents one simulation instance for the Environment
-    - A Scenario defines a TODO: (Link) Reference, system parameters and the system initial condition
-    - TODO: (Link) load_references, edit_references, load_scenarios, save_scenarios
-
+3) Experiment definition file
+    - Realized as a list of Experiment structures or the path to the ".mat" file containing Experiment structures
+    - An Experiment represents one simulation instance for the Environment
+    - An Experiment defines a TODO: (Link) Reference, system parameters and the system initial condition
+    - TODO: (Link) load_references, edit_references, load_experiments, save_experiments
 4) Plots
     - Realized as a list of Plot structures or the path to the ".mat" file containing Plot structures
     - A Plot defines options for plotting the result data after the simulation is successful
@@ -53,14 +52,14 @@ definition can be found at TODO: link ControllerOptions
 
 
 
-# Scenario
+# Experiment
 
-A Scenario defines the specific conditions under which the System operates within an Environment.
-For example, a Scenario might specify different initial conditions, system parameters,
+A Experiment defines the specific conditions under which the System operates within an Environment.
+For example, a Experiment might specify different initial conditions, system parameters,
 or external disturbances to reflect various real-world operating conditions.
 This allows for comprehensive testing of how controllers respond to a wide range of scenarios.
 
-Scenario definition can be found in TODO: Link
+Experiment definition can be found in TODO: Link
 
 
 

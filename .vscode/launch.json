@@ -137,7 +137,7 @@
                 "--env-path",
                 "/home/luka/matlab/csbenchlab_gym/envs/marine_otter_velocity",
                 "--name",
-                "DeePCtest",
+                "DeePC_casadi",
                 "--mux-inputs",
                 "1",
                 "--mux-outputs",
