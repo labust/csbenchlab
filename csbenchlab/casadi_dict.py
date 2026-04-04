@@ -1,4 +1,5 @@
 import casadi as ca
+import numpy as np
 
 class CasadiDict:
 
@@ -9,16 +10,17 @@ class CasadiDict:
         for key, value in value_dict.items():
             self._idx[key] = i
             if isinstance(value, (int, float)):
-                v = ca.DX.sym(key)
-            elif isinstance(value, (list, tuple)):
-                v = ca.DX.sym(key, len(value))
+                v = ca.DM(value)
+            elif isinstance(value, (list, tuple, np.ndarray)):
+                v = ca.DM(value)
             elif isinstance(value, ca.DM):
                 v = value
             elif isinstance(value, ca.MX) or isinstance(value, ca.SX):
                 raise ValueError("CasadiDict does not support MX or SX types as input values.")
             else:
-                v = ca.DX.sym(key, value.shape)
+                raise ValueError(f"Unsupported type for CasadiDict value: {type(value)}")
             self._values.append(v)
+            setattr(self, key, v)
             i += 1
 
     def __getattr__(self, item):
@@ -36,6 +38,7 @@ class CasadiDict:
             super().__setattr__(key, value)
         elif key in self._idx:
             self._values[self._idx[key]] = value
+            super().__setattr__(key, value)
         else:
             raise AttributeError(f"'CasadiDict' object has no attribute '{key}'")
 

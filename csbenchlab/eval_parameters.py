@@ -1,6 +1,7 @@
 from csbenchlab.env_iterators import  iterate_environment_components_with_subcomponents
 from csbenchlab.data_desc import get_component_param_file_path
 from csbenchlab.plugin_helpers import import_module_from_path
+from csbenchlab.common_types import CompositeParams
 from pathlib import Path
 from types import SimpleNamespace
 import warnings
@@ -23,6 +24,9 @@ def handle_callable_value_(value, info, params, plugin_class=None):
             return "csb_m_eval_default"
         elif callable(info["DefaultValue"]):
             return info["DefaultValue"](params)
+    if isinstance(value, CompositeParams):
+        for k, v in value.__dict__.items():
+            setattr(value, k, handle_callable_value_(v, info, params, plugin_class))
     return value
 
 def load_param_description_class_from_file_(file_path, plugin_name):
@@ -74,6 +78,9 @@ def eval_plugin_params_from_file(param_file, param_desc, plugin_class=None, plug
     for info in param_desc:
         if hasattr(params_cls, info['Name']):
             value = getattr(params_cls, info['Name'])
+            # if unknown type for dataclass field, it is wrapped in a tuple, so it is unwrapped here
+            if isinstance(value, tuple) and len(value) == 1:
+                value = value[0]
             value = handle_callable_value_(value, info, result_params, plugin_class)
         else:
             raise ValueError(f"Parameter '{info['Name']}' not found in 'ComponentParams' class.\n  Param file: '{param_file}'")

@@ -1,13 +1,11 @@
 from pathlib import Path
 from PyQt6.QtWidgets import *
 from PyQt6 import uic, QtCore
-import sys, os
+import os
 
-from csb_qt.csbenchlab.parameter_handler import ParameterHandler
 from csb_qt.csb_pyqt_env_manager import CSBEnvGui
-from csb_qt.csb_pyqt_plugin_manager import CSBPluginManager
-from csb_qt.qt_utils import do_in_thread
 from csbenchlab.csb_utils import load_app_config, save_app_config, instantiate_backend
+from csbenchlab.source_libraries import source_libraries
 
 class NewEnvironmentDialog(QDialog):
     def __init__(self, parent=None, title="Enter values"):
@@ -77,8 +75,6 @@ class CSBenchlabGUI(QMainWindow):
         self.init()
 
 
-
-
     def set_minimum_height_width(self):
         num_envs = self.envListWidget.count()
         self.envListWidget.setMinimumHeight(min(200, 30 + num_envs * 30))
@@ -99,6 +95,7 @@ class CSBenchlabGUI(QMainWindow):
         self.envListWidget.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.envListWidget.addItems([x["Name"] for x in self.cfg['envs']])
         self.set_minimum_height_width()
+        source_libraries(self.backend)
 
     def remove_environment(self):
         selected_items = self.envListWidget.selectedItems()
@@ -119,7 +116,7 @@ class CSBenchlabGUI(QMainWindow):
             return
         env_name, path = d.values()
 
-        env_path = os.path.join(path, f"{env_name}")
+        env_path = os.path.join(path, f"{env_name}").strip()
         if os.path.exists(env_path):
             QMessageBox.warning(self, "Error", f"Environment file already exists: {env_path}")
             return
@@ -147,7 +144,7 @@ class CSBenchlabGUI(QMainWindow):
         self.load_environment(env['Path'])
 
     def open_plugin_manager(self):
-        from .csb_pyqt_plugin_manager import CSBPluginManager
+        from ...rpp_plugin_registrator.rpp_plugin_registrator.qt.csb_pyqt_plugin_manager import CSBPluginManager
         w = CSBPluginManager(self.backend, self)
         w.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
         w.show()

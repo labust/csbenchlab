@@ -184,6 +184,7 @@ class CSBEnvGui(QMainWindow):
             self.env_manager.duplicate_component_params(original_data, d)
         if self.env_manager.has_files(original_data):
             self.env_manager.duplicate_files(original_data, d)
+        self.env_manager.duplicate_data_folder(original_data, d)
         self.set_widget(w)
         self.record_widget_change(w)
         self.log(f"Duplicated {dcls.__name__.lower()}: {d['Name']}")

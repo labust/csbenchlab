@@ -118,6 +118,10 @@ class ComponentDataManager:
                     component[subc_name] = res_list
                 else:
                     component[subc_name] = self._load_value(component["Id"], comp_info, subc_name)
+                # ensure parent component info is available
+                # in subcomponent for data managers to work
+                component[subc_name]["ParentComponentId"] = component["Id"]
+                component[subc_name]["ParentComponentName"] = component.get("Name", "")
         return component
 
     def _save_subcomponents(self, component):
@@ -256,6 +260,17 @@ class EnvironmentDataManager:
         mgr = self.get_or_create_component_data_manager(original_component)
         mgr_new = self.get_or_create_component_data_manager(new_component)
         mgr.file_handler.duplicate_files(original_component, new_component, mgr_new.file_handler.folder_path)
+
+    def duplicate_data_folder(self, original_component, new_component):
+        mgr = self.get_or_create_component_data_manager(original_component)
+        mgr_new = self.get_or_create_component_data_manager(new_component)
+        original_data_folder = mgr.path / original_component["Id"] / "data"
+        new_data_folder = mgr_new.path / new_component["Id"] / "data"
+        if original_data_folder.exists() and original_data_folder.is_dir():
+            if new_data_folder.exists():
+                shutil.rmtree(new_data_folder)
+            shutil.copytree(original_data_folder, new_data_folder)
+
 
     def open_parameter_file(self, component):
         mgr = self.get_or_create_component_data_manager(component)

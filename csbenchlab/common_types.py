@@ -1,7 +1,38 @@
 from typing import Any
-from types import SimpleNamespace
+import numpy as np
 
-class ScenarioOptions():
+
+class CompositeParams:
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+class Timeseries:
+
+    def __init__(self, data, time=None):
+        time = np.array(time)
+        data = np.array(data)
+        if time is not None:
+            if time.shape[0] != data.shape[0]:
+                raise ValueError("Time and data must have the same number of rows")
+            self.ts = np.hstack((time.reshape(-1, 1), data.reshape(time.shape[0], -1)))
+            self.time = time
+            self.data = data
+        else:
+            self.data = data[:, 1:]
+            self.time = data[:, 0]
+            self.ts = data
+
+class CSPath:
+
+    def __init__(self, path_str: str):
+        self.path_str = path_str
+
+    def __str__(self):
+        return self.path_str
+
+class ExperimentOptions():
 
     def __init__(self,
                  reference,
@@ -46,8 +77,20 @@ class PyEval:
 
 class MatEval:
 
-    def __init__(self, eval_str: str):
-        self.eval_str = eval_str
+    def __init__(self, eval_str: str, *args):
+        if len(args) > 0:
+            self.args = args
+            resolved_args = []
+            for arg in args:
+                if arg.startswith("${"):
+                    # If the argument is a variable reference, it is left as-is for later resolution
+                    arg = arg[2:-1]  # Remove the ${ and } to get the variable name
+                    resolved_args.append(arg)
+                else:
+                    resolved_args.append(f'"{arg}"')
+            self.eval_str = f"{eval_str}(" + ", ".join(resolved_args) + ")"
+        else:
+            self.eval_str = eval_str
 
     def as_string(self):
         return f"csb_m_eval_exp:{self.eval_str}"

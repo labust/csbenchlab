@@ -17,6 +17,7 @@ class MatlabBackend:
         'get_library_info': ("get_library_info('{}, {}')", 1),
         'list_component_libraries': ("list_component_libraries()", 1),
         'refresh_component_library': ("refresh_component_library('{}')", 0),
+        'is_valid_component_library': ("is_valid_component_library('{}')", 1),
         'register_component_library': ("register_component_library('{}', {})", 0),
         'get_or_create_component_library': ("get_or_create_component_library('{}', 1)", 0),
         'remove_component_library': ("remove_component_library('{}')", 0),

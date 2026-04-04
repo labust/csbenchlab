@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from . import PluginBase
 import numpy as np
+from types import SimpleNamespace
 
 
 class DisturbanceGenerator(PluginBase):
@@ -15,7 +16,9 @@ class DisturbanceGenerator(PluginBase):
         self.data = parsed.get('Data', None)
         self.last_el = None
         if hasattr(self, 'create_data_model') and self.data is None:
-            self.data = self.create_data_model(self.params)
+            options = SimpleNamespace()
+            options.params = self.params
+            self.data = self.create_data_model(options)
         self.initialize(**kwargs)
 
     def on_configure(self):

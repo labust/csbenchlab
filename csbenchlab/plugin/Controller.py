@@ -1,5 +1,5 @@
 from abc import abstractmethod
-
+from types import SimpleNamespace
 import json
 from . import PluginBase
 import numpy as np
@@ -18,7 +18,10 @@ class Controller(PluginBase):
         self.mux = mux
         self.last_el = None
         if hasattr(self, 'create_data_model') and self.data is None:
-            self.data = self.create_data_model(self.params, mux)
+            options = SimpleNamespace()
+            options.params = self.params
+            options.mux = mux
+            self.data = self.create_data_model(options)
         self.initialize(**kwargs)
 
 

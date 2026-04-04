@@ -34,10 +34,10 @@ def main():
 
     palette.setColor(QPalette.ColorRole.Dark, QColor("#BBBBBB"))
 
-    app.setPalette(palette)   
+    app.setPalette(palette)
 
     app.setStyleSheet("""
-                      
+
 * {
     font-family: 'Inter';
     font-size: 10pt;

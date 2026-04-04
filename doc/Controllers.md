@@ -44,7 +44,8 @@ classdef Controller1 < Controller
 
 
     methods (Static)
-        function data = create_data_model(params)
+        function data = create_data_model(options)
+            params = options.params;
             data.x1 = zeros(params.p1, 1);
             data.x2 = zeros(params.p2, 1);
             data.x3 = 3;

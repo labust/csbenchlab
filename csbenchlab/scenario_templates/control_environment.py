@@ -7,7 +7,7 @@ import bdsim as bd
 from bdsim.blocks.sources import Constant, Time
 from bdsim.blocks.sinks import Null
 from bdsim.blocks.displays import Scope
-from m_scripts.eval_scenario_descriptions import eval_scenario_descriptions
+from m_scripts.eval_experiment_descriptions import eval_experiment_descriptions
 from csbenchlab.sim_output import SimOutput
 
 
@@ -120,7 +120,7 @@ class ControlEnvironment:
                 "Outputs": system_dims["Outputs"],
             }
         }
-        self.scenarios = eval_scenario_descriptions(self.env_path, env_data)
+        self.scenarios = eval_experiment_descriptions(self.env_path, env_data)
         self.blocks = [self.reference] + self.plants + self.ctls
 
     def get_scenarios(self):

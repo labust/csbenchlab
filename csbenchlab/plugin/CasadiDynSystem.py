@@ -68,8 +68,8 @@ class CasadiDynSystem(DynSystem):
         return self.last_el
 
     @classmethod
-    def create_data_model(cls, params):
-        dims = cls.get_dims_from_params(params)
+    def create_data_model(cls, options):
+        dims = cls.get_dims_from_params(options.params)
         return DataModel(
            x=ca.DM.zeros(dims["Outputs"])
         )

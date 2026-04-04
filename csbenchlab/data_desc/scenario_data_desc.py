@@ -61,7 +61,7 @@ def scenario(scenario, dt, system_dims):
     reference = generate_steps(scenario, dt, system_dims, [1], 0)
     ic = np.zeros((system_dims["Outputs"]))
 
-    return ScenarioOptions(
+    return ExperimentOptions(
         reference=reference,
         ic=ic,
         system_parameter_overrides=overrides

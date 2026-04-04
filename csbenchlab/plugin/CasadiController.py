@@ -39,7 +39,7 @@ class CasadiController(Controller):
         return self.casadi_step_fn()
 
     @classmethod
-    def create_data_model(cls, params, mux):
+    def create_data_model(cls, options):
         """Create and return a data model for the controller."""
         return None
 

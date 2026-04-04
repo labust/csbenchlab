@@ -2,10 +2,10 @@
 from argparse import ArgumentParser
 from csbenchlab.plugin_helpers import import_module_from_path
 from pathlib import Path
-import sys, os
-from m_scripts.get_plugin_info import get_plugin_info_from_file
-from csbenchlab.eval_parameters import eval_plugin_params
 from types import SimpleNamespace
+import sys, os
+from csbenchlab.eval_parameters import eval_plugin_params
+from csbenchlab.source_libraries import source_libraries
 from csbenchlab.environment_data_manager import EnvironmentDataManager
 from csbenchlab.backend.python_backend import PythonBackend
 
@@ -32,7 +32,10 @@ def debug_component(env_path, controller_name, mux):
         # check if it is class method
         if hasattr(component_class.create_data_model, '__self__') \
             and component_class.create_data_model.__self__ == component_class:
-            data = component_class.create_data_model(params, mux)
+            options = SimpleNamespace()
+            options.params = params
+            options.mux = mux
+            data = component_class.create_data_model(options)
         else:
             raise ValueError("create_data_model must be a class method.")
     component_instance = component_class('Params', params, 'Data', data)
@@ -61,7 +64,7 @@ def main():
     parser.add_argument('--mux-outputs', type=int, required=True)
 
 
-
+    source_libraries()
     args = parser.parse_args()
 
     mux = dict()

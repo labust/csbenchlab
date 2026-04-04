@@ -75,11 +75,11 @@
             "console": "integratedTerminal",
             "args": [
                 "--env-path",
-                "/home/luka/matlab/csbenchlab_gym/envs/explicit_deepc",
+                "/home/luka/fer/csbenchlab_gym/envs/marine_otter_velocity",
                 "--lib-path",
-                "/home/luka/matlab/csbenchlab/registry",
+                "/home/luka/.csbenchlab/registry/matlab",
                 "--component-info-path",
-                "/tmp/tp3074f5d2_c318_41c0_ad59_13b2b8c70b33.json",
+                "/tmp/tp9c194422_396c_4d8f_993d_a2faec4d4faa.json",
                 "--py-as-py"
             ],
             "justMyCode": false
@@ -97,16 +97,16 @@
             "justMyCode": false
         },
         {
-            "name": "Python Debugger: Eval Scenario Descriptions",
+            "name": "Python Debugger: Eval Experiment Descriptions",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/m_scripts/eval_scenario_descriptions.py",
+            "program": "${workspaceFolder}/m_scripts/eval_experiment_descriptions.py",
             "console": "integratedTerminal",
             "args": [
                 "--env-path",
-                "/home/luka/matlab/csbenchlab_gym/new_envs/otter_vel",
+                "/home/luka/fer/csbenchlab_gym/envs/marine_otter_full",
                 "--env-data-path",
-                "/tmp/tp7cf64903_0e66_49f4_816e_a72359e3ece8.json"
+                "/tmp/tp3b545fe5_3ca8_44b1_8a4b_f716f950034c.json"
             ],
             "justMyCode": false
         },
@@ -131,11 +131,11 @@
             "program": "${workspaceFolder}/debug/run_debug_component.py",
             "console": "integratedTerminal",
             "env": {
-                "CSB_LIB_PATH": "/home/luka/matlab/csbenchlab/registry"
+                "CSB_LIB_PATH": "/home/luka/.csbenchlab/registry"
             },
             "args": [
                 "--env-path",
-                "/home/luka/matlab/csbenchlab_gym/envs/marine_otter_velocity",
+                "/home/luka/fer/csbenchlab_gym/envs/marine_otter_velocity",
                 "--name",
                 "DeePC_casadi",
                 "--mux-inputs",
